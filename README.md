@@ -1,5 +1,3 @@
-## Kizen Plugin Template
+## Kizen RingCentral Plugin
 
-This is a template for creating Kizen plugins. Modify or delete areas as needed.
-
-.
+Kizen's RingCentral integration
