@@ -1,3 +1,3 @@
 ## Kizen RingCentral Plugin
 
-Kizen's RingCentral integration
+Kizen's RingCentral integration. See https://developer.kizen.com
