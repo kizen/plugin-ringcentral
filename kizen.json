@@ -4,7 +4,7 @@
   "api_name": "ringcentral",
   "description": "Make and receive calls with RingCentral",
   "release_branches": ["main"],
-  "release_environments": ["integration"],
+  "release_environments": ["go"],
   "entry": "src/",
   "engine": "1.0.0",
   "release_notes_directory": "releaseNotes/",
