@@ -1,0 +1,6 @@
+{
+  "icon": "phone",
+  "field_type": "phonenumber",
+  "color": "orange",
+  "tooltip": "Dial number"
+}

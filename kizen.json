@@ -1,10 +1,60 @@
 {
-  "name": "Plugin Template",
-  "internal_name": "plugin_template",
-  "description": "A template Kizen plugin. Use this to start building your own. Be sure to change the name and internal name.",
-  "version": "1.0.0",
-  "release_branches": [""],
-  "release_environments": [""],
+  "name": "RingCentral",
+  "version": "1.0.1",
+  "api_name": "ringcentral",
+  "description": "Make and receive calls with RingCentral",
+  "release_branches": ["main"],
+  "release_environments": ["integration"],
   "entry": "src/",
-  "engine": "1.0.0"
+  "engine": "1.0.0",
+  "release_notes_directory": "releaseNotes/",
+  "config_template": {
+    "callSummaryObject": {
+      "objectId": "",
+      "objectFieldTemplate": [
+        {
+          "name": "name",
+          "value": "{{entityName}}"
+        },
+        {
+          "name": "owner",
+          "value": "{{currentUser}}"
+        },
+        {
+          "name": "related_contact_records",
+          "value": "{{entityIds}}"
+        },
+        {
+          "name": "duration_seconds",
+          "value": "{{duration}}"
+        },
+        {
+          "name": "phone_number",
+          "value": "{{phoneNumber}}"
+        },
+        {
+          "name": "team_member",
+          "value": "{{currentUser}}"
+        },
+        {
+          "name": "direction",
+          "value": "{{direction}}",
+          "valueMap": {
+            "Inbound": "Inbound",
+            "Outbound": "Outbound"
+          }
+        },
+        {
+          "name": "session_id",
+          "value": "{{sessionId}}"
+        },
+        {
+          "name": "call_recording",
+          "value": "{{callRecording}}"
+        }
+      ]
+    },
+    "callerLookupEndpoint": "/client/v2"
+  },
+  "base_config": {}
 }
