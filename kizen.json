@@ -45,10 +45,6 @@
           }
         },
         {
-          "name": "call_recording_link",
-          "value": "{{recordingUrl}}"
-        },
-        {
           "name": "session_id",
           "value": "{{sessionId}}"
         },
