@@ -1,0 +1,14 @@
+{
+  "name": "RingCentral Dialer",
+  "api_name": "dialer",
+  "title": "RingCentral Dialer",
+  "header_color": "rgb(37, 89, 228)",
+  "header_text_color": "rgb(255, 255, 255)",
+  "height": 670,
+  "width": 400,
+  "minimized_style": "circle",
+  "minimized_config": {
+    "icon": "phone",
+    "color": "rgba(37, 89, 228, 0.75)"
+  }
+}
