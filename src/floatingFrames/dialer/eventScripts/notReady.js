@@ -1,1 +1,2 @@
-console.log("dialer is not ready yet...");
+/* We don't need to handle the notReady event right now */
+return;

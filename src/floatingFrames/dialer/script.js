@@ -4,7 +4,7 @@ const baseUrl =
 this.outputIframe(
   `${baseUrl}?disableInactiveTabCallEvent=1&disableMeeting=1&defaultAutoLogCallEnabled=1${
     this.args.appServer ? `&appServer=${this.args.appServer}` : ""
-  }${this.args.clientId ? `&clientId=${this.args.clientId}` : ""}`,
+  }&clientId=fvoeB742xA4dMdCNypsZdS`,
   [
     "microphone",
     "speaker-selection",

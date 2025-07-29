@@ -1,3 +1,5 @@
+this.expand();
+
 this.communicate.sendMessageToOwnFrame(
   {
     type: "rc-adapter-new-call",

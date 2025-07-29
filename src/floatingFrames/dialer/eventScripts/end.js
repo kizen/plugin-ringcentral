@@ -1,5 +1,3 @@
-this.clearToasts();
-
 this.communicate.sendMessageToOwnFrame(
   {
     type: "rc-adapter-register-customized-page",
@@ -74,13 +72,18 @@ const replaceFieldValue = (value, args, valueMap = {}, fieldMetadata = {}) => {
         )?.id ?? "";
       return value;
     }
+    case "{{sessionId}}":
+      return args.sessionId;
     case "{{recordingUrl}}":
       return "";
+    case "{{callRecording}}":
+      return [args.fileId].filter(Boolean);
   }
   return value;
 };
 
-if (summaryActivityDetails) {
+/* Disable the summary activity logging for now */
+if (summaryActivityDetails && false) {
   let activityId = summaryActivityDetails.activityId;
 
   if (!activityId) {
@@ -122,6 +125,7 @@ if (summaryActivityDetails) {
                   duration: this.args.duration,
                   phoneNumber: this.args.phoneNumber,
                   direction: this.args.direction,
+                  sessionId: this.args.sessionId,
                 },
                 field.valueMap || {},
                 kznField
@@ -193,10 +197,12 @@ if (objectDetails) {
           field.value,
           {
             entityIds: people.map((p) => p.id),
-            entityName: new Date().toISOString(),
+            entityName: new Date(this.args.date || Date.now()).toISOString(),
             duration: this.args.duration,
             phoneNumber: this.args.phoneNumber,
             direction: this.args.direction,
+            sessionId: this.args.sessionId,
+            fileId: this.args.fileId,
           },
           field.valueMap || {},
           kznField
@@ -204,8 +210,13 @@ if (objectDetails) {
       };
     });
 
-    await this.post(`/custom-objects/${objectId}/entity-records/add`, {
+    await this.post(`/records/${objectId}/add`, {
       fields,
+    });
+
+    this.communicate.sendMessageToOwnFrame({
+      type: "rc-adapter-trigger-call-logger-match",
+      sessionIds: [this.args.sessionId],
     });
   }
 }

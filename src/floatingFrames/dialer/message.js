@@ -6,19 +6,23 @@ if (!eventData?.type) {
 
 const { type, call } = eventData;
 
+function acknowledge(requestId) {
+  this.communicate.sendMessageToOwnFrame({
+    type: "rc-post-message-response",
+    responseId: requestId,
+    response: { data: "ok" },
+  });
+}
+
 if (type === "rc-call-ring-notify" && call) {
   this.communicate.runFrameScript("dialer", "incoming", {
     phoneNumber: this.parsePhone(call.from),
   });
-} else if (type === "rc-call-end-notify" && call) {
-  const phoneNumber = call.direction === "Inbound" ? call.from : call.to;
-  const duration = call.endTime - call.startTime;
-  this.communicate.runFrameScript("dialer", "end", {
-    phoneNumber,
-    duration: Math.floor(duration / 1000),
-    direction: call.direction,
-    id: call.id,
-  });
+} else if (type === "rc-call-end-notify") {
+  /* When a call is completed, clear the toasts. All other call
+     logging logic is now handled by the custom log-to-kizen logger */
+
+  this.clearToasts();
 } else if (type === "rc-dialer-status-notify") {
   const ready = eventData.ready;
   if (ready) {
@@ -34,11 +38,6 @@ if (type === "rc-call-ring-notify" && call) {
   this.communicate.runFrameScript("dialer", "callStart", { data: eventData });
 } else if (type === "rc-post-message-request") {
   if (eventData.path === "/customizedPage/inputChanged") {
-    this.communicate.sendMessageToOwnFrame({
-      type: "rc-post-message-response",
-      responseId: eventData.requestId,
-      response: { data: "ok" },
-    });
     const selectedRecord = eventData.body?.formData?.opportunity;
     if (selectedRecord === "new_contact") {
       this.clearToasts();
@@ -54,5 +53,17 @@ if (type === "rc-call-ring-notify" && call) {
         selectedId: selectedRecord,
       });
     }
+
+    acknowledge.bind(this)(eventData.requestId);
+  } else if (eventData.path === "/log-to-kizen") {
+    this.communicate.runFrameScript("dialer", "logCall", {
+      payload: eventData.body,
+    });
+
+    acknowledge.bind(this)(eventData.requestId);
+  } else if (eventData.path === "/log-to-kizen/match") {
+    this.communicate.runFrameScript("dialer", "matcher", {
+      payload: eventData,
+    });
   }
 }

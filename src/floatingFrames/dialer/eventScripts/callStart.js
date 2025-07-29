@@ -4,19 +4,22 @@ if (!callData) {
   return;
 }
 
-if (callData.call.direction === "Inbound") {
-  const phone = callData.call.from;
-  if (phone) {
-    const people = await this.post(
-      `${this.args.callerLookupEndpoint}?search=${encodeURIComponent(
-        this.parsePhone(phone)
-      )}`
-    );
-    this.clearToasts();
+let phone = callData.call.to;
 
-    const kizenIconDataUrl =
-      "data:image/svg+xml;base64," +
-      btoa(`
+if (callData.call.direction === "Inbound") {
+  phone = callData.call.from;
+}
+
+if (phone) {
+  const people = await this.post(
+    `${this.args.callerLookupEndpoint}?search=${encodeURIComponent(
+      this.parsePhone(phone)
+    )}`
+  );
+
+  const kizenIconDataUrl =
+    "data:image/svg+xml;base64," +
+    btoa(`
     <svg width="486" height="134" viewBox="0 0 486 134" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M191.249 105.904H177.439V37.5591H191.249V105.904ZM241.469 105.904H224.477L202.739 82.0618C199.934 78.8792 198.531 75.4268 198.531 71.5969C198.531 67.767 199.987 64.5843 202.846 61.4017L224.747 37.5591H241.631L212.232 69.601C211.855 69.8707 211.531 70.1944 211.315 70.518C211.1 70.8417 210.992 71.2193 210.992 71.543C210.992 71.8127 211.1 72.1363 211.315 72.46C211.531 72.7836 211.855 73.1612 212.232 73.4849L241.523 105.85L241.469 105.904Z" fill="rgb(74, 86, 96)"/>
     <path d="M258.245 24.0737C256.681 24.0737 255.171 23.6961 253.768 22.8869C252.366 22.0778 251.287 20.999 250.424 19.5964C249.615 18.1939 249.183 16.6835 249.183 15.0113C249.183 13.3391 249.615 11.8287 250.424 10.4262C251.287 9.02368 252.366 7.94483 253.768 7.08174C255.171 6.21866 256.627 5.84106 258.245 5.84106C259.918 5.84106 261.428 6.2726 262.777 7.08174C264.125 7.94483 265.204 9.02368 266.013 10.4262C266.822 11.8287 267.2 13.3391 267.2 15.0113C267.2 16.6835 266.822 18.2479 266.013 19.5964C265.204 20.999 264.179 22.0778 262.777 22.8869C261.428 23.6961 259.918 24.0737 258.245 24.0737ZM251.395 37.6133H265.204V105.959H251.395V37.6133Z" fill="rgb(74, 86, 96)"/>
@@ -34,85 +37,74 @@ if (callData.call.direction === "Inbound") {
     </svg>
     `);
 
-    const faCirclePlusDataUrl =
-      "data:image/svg+xml;base64," +
-      btoa(`
+  const faCirclePlusDataUrl =
+    "data:image/svg+xml;base64," +
+    btoa(`
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
         <path fill="rgb(128, 128, 128)" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm104-216h-80v-80c0-13.3-10.7-24-24-24s-24 10.7-24 24v80h-80c-13.3 0-24 10.7-24 24s10.7 24 24 24h80v80c0 13.3 10.7 24 24 24s24-10.7 24-24v-80h80c13.3 0 24-10.7 24-24s-10.7-24-24-24z"/>
       </svg>
       `);
 
-    this.communicate.sendMessageToOwnFrame(
-      {
-        type: "rc-adapter-register-customized-page",
-        page: {
-          id: "contactOptions",
-          title: "Kizen",
-          type: "tab",
-          iconUri: kizenIconDataUrl,
-          activeIconUri: kizenIconDataUrl,
-          unreadCount: people.results.length,
-          priority: 31,
-          hidden: false,
-          schema: {
-            type: "object",
-            required: [],
-            properties: {
-              opportunity: {
-                type: "string",
-                oneOf: people.results
-                  .map((p) => {
-                    return {
-                      const: p.id,
-                      title: p.full_name,
-                      description: "Open this record",
-                      icon: kizenIconDataUrl,
-                    };
-                  })
-                  .concat({
-                    const: "new_contact",
-                    title: "New Contact",
-                    description: "Create a new contact",
-                    icon: faCirclePlusDataUrl,
-                    callFrom: phone,
-                  }),
-              },
-            },
-          },
-          uiSchema: {
+  this.communicate.sendMessageToOwnFrame(
+    {
+      type: "rc-adapter-register-customized-page",
+      page: {
+        id: "contactOptions",
+        title: "Kizen",
+        type: "tab",
+        iconUri: kizenIconDataUrl,
+        activeIconUri: kizenIconDataUrl,
+        unreadCount: people.results.length,
+        priority: 31,
+        hidden: false,
+        schema: {
+          type: "object",
+          required: [],
+          properties: {
             opportunity: {
-              "ui:field": "list",
-              "ui:showIconAsAvatar": true,
+              type: "string",
+              oneOf: people.results
+                .map((p) => {
+                  return {
+                    const: p.id,
+                    title: p.full_name,
+                    description: "Open this record",
+                    icon: kizenIconDataUrl,
+                  };
+                })
+                .concat({
+                  const: "new_contact",
+                  title: "New Contact",
+                  description: "Create a new contact",
+                  icon: faCirclePlusDataUrl,
+                  callFrom: phone,
+                }),
             },
           },
-          formData: {
-            opportunity: "",
+        },
+        uiSchema: {
+          opportunity: {
+            "ui:field": "list",
+            "ui:showIconAsAvatar": true,
           },
         },
-      },
-      "*"
-    );
-
-    this.communicate.sendMessageToOwnFrame(
-      {
-        type: "rc-adapter-register-third-party-service",
-        service: {
-          name: "KizenService",
-          customizedPageInputChangedEventPath: "/customizedPage/inputChanged",
-          buttonEventPath: "/button-click",
+        formData: {
+          opportunity: "",
         },
       },
-      "*"
-    );
-
-    this.communicate.sendMessageToOwnFrame(
-      {
-        type: "rc-adapter-navigate-to",
-        path: "/customizedTabs/contactOptions",
-      },
-      "*"
-    );
-  }
-} else {
-  this.clearToasts();
+    },
+    "*"
+  );
 }
+
+if (callData.call.direction === "Inbound" && phone) {
+  this.communicate.sendMessageToOwnFrame(
+    {
+      type: "rc-adapter-navigate-to",
+      path: "/customizedTabs/contactOptions",
+    },
+    "*"
+  );
+}
+
+this.clearToasts();
