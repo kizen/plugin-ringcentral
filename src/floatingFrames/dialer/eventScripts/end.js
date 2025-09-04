@@ -32,12 +32,17 @@ if (!summaryActivityDetails && !objectDetails) {
 
 let employeeId = this.currentBusiness.employee_id;
 
-if (!employeeId || true) {
-  const bootstrap = await this.get("/auth/bootstrap");
+if (!employeeId) {
+  const [bootstrap, bootstrapError] = await this.getWithErrors(
+    "/auth/bootstrap"
+  );
+
+  if (bootstrapError) {
+    throw bootstrapError;
+  }
+
   employeeId = bootstrap?.team?.id;
 }
-
-console.log(employeeId, this.currentBusiness.employee_id);
 
 if (!employeeId) {
   throw new Error(
