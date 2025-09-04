@@ -63,8 +63,6 @@ if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
     people = result.results.map((p) => p.id);
   }
 
-  console.log(JSON.stringify(people));
-
   if (result?.results?.length > 1) {
     const promptResult = await this.prompt({
       title: "Confirm Contacts for Call Log",
@@ -105,8 +103,6 @@ if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
     if (promptResult.values?.contacts?.length > 0) {
       people = promptResult.values.contacts.map((v) => v.value);
     }
-
-    console.log(JSON.stringify(people));
   }
 }
 
