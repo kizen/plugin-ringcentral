@@ -80,9 +80,10 @@ if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
           multiselect: true,
           label: "Choose Contacts",
           options: people.map((person) => ({
-            label: person.name,
+            label: person.display_name,
             value: person.id,
           })),
+          defaultValue: people.map((p) => p.id),
         },
       ],
     });
