@@ -30,20 +30,24 @@ if (!summaryActivityDetails && !objectDetails) {
   return;
 }
 
+let employeeId = this.currentBusiness.employee_id;
+
+if (!employeeId || true) {
+  const bootstrap = await this.get("/bootstrap");
+  console.log(JSON.stringify(bootstrap, null, 2));
+  return;
+}
+
 let people = [];
 
-const configResult = await this.get(
-  `/employee/mine/configs/plugins/${this.args.pluginId}`
-);
-
-if (configResult?.config?.["ringcentral-dialer"]?.triggeredEntity) {
-  people = [{ id: configResult.config["ringcentral-dialer"].triggeredEntity }];
-} else if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
+if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
   const result = await this.post(
     `${this.args.callerLookupEndpoint}?search=${encodeURIComponent(
       this.args.phoneNumber
     )}`
   );
+
+  // TODO: Disambiguate people here
 
   if (result?.results) {
     people = result.results;
@@ -57,7 +61,7 @@ const replaceFieldValue = (value, args, valueMap = {}, fieldMetadata = {}) => {
     case "{{phoneNumber}}":
       return args.phoneNumber;
     case "{{currentUser}}":
-      return this.currentBusiness.employee_id;
+      return employeeId;
     case "{{entityId}}":
       return args.entityId;
     case "{{entityIds}}":
@@ -220,22 +224,6 @@ if (objectDetails) {
     });
   }
 }
-
-const newResult = {
-  ...configResult,
-  config: {
-    ...configResult.config,
-    ["ringcentral-dialer"]: {
-      ...configResult.config["ringcentral-dialer"],
-      triggeredEntity: undefined,
-    },
-  },
-};
-
-await this.post(
-  `/employee/mine/configs/plugins/${this.args.pluginId}`,
-  newResult
-);
 
 people.forEach((person) => {
   this.refreshTimelineForId(person.id);
