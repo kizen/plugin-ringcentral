@@ -34,8 +34,15 @@ let employeeId = this.currentBusiness.employee_id;
 
 if (!employeeId || true) {
   const bootstrap = await this.get("/auth/bootstrap");
-  console.log(JSON.stringify(bootstrap, null, 2));
-  return;
+  employeeId = bootstrap?.team?.id;
+}
+
+console.log(employeeId, this.currentBusiness.employee_id);
+
+if (!employeeId) {
+  throw new Error(
+    "Employee ID could not be determined, so that call was not logged to Kizen. Please try again later."
+  );
 }
 
 let people = [];
