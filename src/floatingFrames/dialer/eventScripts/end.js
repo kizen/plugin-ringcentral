@@ -60,18 +60,28 @@ if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
   );
 
   if (result?.results) {
-    people = result.results;
+    people = result.results.map((p) => p.id);
   }
 
   console.log(JSON.stringify(people));
 
-  if (people.length > 1) {
+  if (result?.results?.length > 1) {
     const promptResult = await this.prompt({
       title: "Confirm Contacts for Call Log",
+      confirmButton: {
+        label: "Log Call",
+        variant: "standard",
+      },
+      cancelButton: {
+        label: "Skip Logging",
+        variant: "text",
+      },
       content: [
         {
           type: "description",
-          text: "Multiple contacts matched the completed call. Please confirm the contact or contacts you would like to associate this call with.",
+          content:
+            "Multiple contacts matched the completed call. Please confirm the contact or contacts you would like to associate this call with.",
+          widthPercent: 100,
         },
         {
           type: "dropdown",
@@ -79,11 +89,12 @@ if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
           placeholder: "Choose Contacts",
           multiselect: true,
           label: "Choose Contacts",
-          options: people.map((person) => ({
+          options: result.results.map((person) => ({
             label: person.display_name,
             value: person.id,
           })),
           defaultValue: people.map((p) => p.id),
+          widthPercent: 100,
         },
       ],
     });
@@ -92,7 +103,11 @@ if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
       return;
     }
 
-    console.log(JSON.stringify(promptResult.values));
+    if (promptResult.values?.contacts?.length > 0) {
+      people = promptResult.values.contacts.map((v) => v.value);
+    }
+
+    console.log(JSON.stringify(people));
   }
 }
 
