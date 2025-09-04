@@ -59,10 +59,39 @@ if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
     )}`
   );
 
-  // TODO: Disambiguate people here
-
   if (result?.results) {
     people = result.results;
+  }
+
+  console.log(JSON.stringify(people));
+
+  if (people.length > 1) {
+    const promptResult = await this.prompt({
+      title: "Confirm Contacts for Call Log",
+      content: [
+        {
+          type: "description",
+          text: "Multiple contacts matched the completed call. Please confirm the contact or contacts you would like to associate this call with.",
+        },
+        {
+          type: "dropdown",
+          id: "contacts",
+          placeholder: "Choose Contacts",
+          multiselect: true,
+          label: "Choose Contacts",
+          options: people.map((person) => ({
+            label: person.name,
+            value: person.id,
+          })),
+        },
+      ],
+    });
+
+    if (promptResult.canceled) {
+      return;
+    }
+
+    console.log(JSON.stringify(promptResult.values));
   }
 }
 
