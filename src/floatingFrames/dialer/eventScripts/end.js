@@ -33,7 +33,7 @@ if (!summaryActivityDetails && !objectDetails) {
 let employeeId = this.currentBusiness.employee_id;
 
 if (!employeeId || true) {
-  const bootstrap = await this.get("/bootstrap");
+  const bootstrap = await this.get("/auth/bootstrap");
   console.log(JSON.stringify(bootstrap, null, 2));
   return;
 }
