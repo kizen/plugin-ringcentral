@@ -1,6 +1,6 @@
 {
   "name": "RingCentral",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "api_name": "ringcentral",
   "description": "Make and receive calls with RingCentral",
   "release_branches": ["bug/KZN-14574-ringcentral-employee-id"],

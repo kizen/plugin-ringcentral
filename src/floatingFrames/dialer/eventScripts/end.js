@@ -88,12 +88,11 @@ if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
           id: "contacts",
           placeholder: "Choose Contacts",
           multiselect: true,
-          label: "Choose Contacts",
           options: result.results.map((person) => ({
             label: person.display_name,
             value: person.id,
           })),
-          defaultValue: people.map((p) => p.id),
+          defaultValue: people,
           widthPercent: 100,
         },
       ],
@@ -204,7 +203,7 @@ if (summaryActivityDetails && false) {
               this.clientObject.id
             ),
             entity_id: replaceFieldValue(object.entity_id, {
-              entityId: person.id,
+              entityId: person,
             }),
           };
         });
@@ -257,7 +256,7 @@ if (objectDetails) {
         value: replaceFieldValue(
           field.value,
           {
-            entityIds: people.map((p) => p.id),
+            entityIds: people,
             entityName: new Date(this.args.date || Date.now()).toISOString(),
             duration: this.args.duration,
             phoneNumber: this.args.phoneNumber,
@@ -283,5 +282,5 @@ if (objectDetails) {
 }
 
 people.forEach((person) => {
-  this.refreshTimelineForId(person.id);
+  this.refreshTimelineForId(person);
 });
