@@ -270,6 +270,10 @@ if (objectDetails) {
       fields,
     });
 
+    this.showToast("Successfully created call log", {
+      variant: "success",
+    });
+
     this.communicate.sendMessageToOwnFrame({
       type: "rc-adapter-trigger-call-logger-match",
       sessionIds: [this.args.sessionId],
