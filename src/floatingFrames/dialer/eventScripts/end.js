@@ -71,14 +71,14 @@ if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
         variant: "standard",
       },
       cancelButton: {
-        label: "Skip Logging",
+        label: "Log Without Contact",
         variant: "text",
       },
       content: [
         {
           type: "description",
           content:
-            "Multiple contacts matched the completed call. Please confirm the contact or contacts you would like to associate this call with.",
+            "Multiple contacts matched the completed call. Please confirm the contact or contacts you would like to associate this call with, or log the call without a contact.",
           widthPercent: 100,
         },
         {
@@ -97,11 +97,11 @@ if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
     });
 
     if (promptResult.canceled) {
-      return;
-    }
-
-    if (promptResult.values?.contacts?.length > 0) {
+      people = [];
+    } else if (promptResult.values?.contacts?.length > 0) {
       people = promptResult.values.contacts.map((v) => v.value);
+    } else if (promptResult.values?.contacts?.length === 0) {
+      people = [];
     }
   }
 }
