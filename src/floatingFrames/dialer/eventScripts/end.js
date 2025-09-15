@@ -30,15 +30,29 @@ if (!summaryActivityDetails && !objectDetails) {
   return;
 }
 
+let employeeId = this.currentBusiness.employee_id;
+
+if (!employeeId) {
+  const [bootstrap, bootstrapError] = await this.getWithErrors(
+    "/auth/bootstrap"
+  );
+
+  if (bootstrapError) {
+    throw bootstrapError;
+  }
+
+  employeeId = bootstrap?.team?.id;
+}
+
+if (!employeeId) {
+  throw new Error(
+    "Employee ID could not be determined, so that call was not logged to Kizen. Please try again later."
+  );
+}
+
 let people = [];
 
-const configResult = await this.get(
-  `/employee/mine/configs/plugins/${this.args.pluginId}`
-);
-
-if (configResult?.config?.["ringcentral-dialer"]?.triggeredEntity) {
-  people = [{ id: configResult.config["ringcentral-dialer"].triggeredEntity }];
-} else if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
+if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
   const result = await this.post(
     `${this.args.callerLookupEndpoint}?search=${encodeURIComponent(
       this.args.phoneNumber
@@ -46,7 +60,49 @@ if (configResult?.config?.["ringcentral-dialer"]?.triggeredEntity) {
   );
 
   if (result?.results) {
-    people = result.results;
+    people = result.results.map((p) => p.id);
+  }
+
+  if (result?.results?.length > 1) {
+    const promptResult = await this.prompt({
+      title: "Confirm Contacts for Call Log",
+      confirmButton: {
+        label: "Log Call",
+        variant: "standard",
+      },
+      cancelButton: {
+        label: "Log Without Contact",
+        variant: "text",
+      },
+      content: [
+        {
+          type: "description",
+          content:
+            "Multiple contacts matched the completed call. Please confirm the contact or contacts you would like to associate this call with, or log the call without a contact.",
+          widthPercent: 100,
+        },
+        {
+          type: "dropdown",
+          id: "contacts",
+          placeholder: "Choose Contacts",
+          multiselect: true,
+          options: result.results.map((person) => ({
+            label: person.display_name,
+            value: person.id,
+          })),
+          defaultValue: people,
+          widthPercent: 100,
+        },
+      ],
+    });
+
+    if (promptResult.canceled) {
+      people = [];
+    } else if (promptResult.values?.contacts?.length > 0) {
+      people = promptResult.values.contacts.map((v) => v.value);
+    } else if (promptResult.values?.contacts?.length === 0) {
+      people = [];
+    }
   }
 }
 
@@ -57,7 +113,7 @@ const replaceFieldValue = (value, args, valueMap = {}, fieldMetadata = {}) => {
     case "{{phoneNumber}}":
       return args.phoneNumber;
     case "{{currentUser}}":
-      return this.currentBusiness.employee_id;
+      return employeeId;
     case "{{entityId}}":
       return args.entityId;
     case "{{entityIds}}":
@@ -143,7 +199,7 @@ if (summaryActivityDetails && false) {
               this.clientObject.id
             ),
             entity_id: replaceFieldValue(object.entity_id, {
-              entityId: person.id,
+              entityId: person,
             }),
           };
         });
@@ -196,7 +252,7 @@ if (objectDetails) {
         value: replaceFieldValue(
           field.value,
           {
-            entityIds: people.map((p) => p.id),
+            entityIds: people,
             entityName: new Date(this.args.date || Date.now()).toISOString(),
             duration: this.args.duration,
             phoneNumber: this.args.phoneNumber,
@@ -214,6 +270,10 @@ if (objectDetails) {
       fields,
     });
 
+    this.showToast("Successfully created call log", {
+      variant: "success",
+    });
+
     this.communicate.sendMessageToOwnFrame({
       type: "rc-adapter-trigger-call-logger-match",
       sessionIds: [this.args.sessionId],
@@ -221,22 +281,6 @@ if (objectDetails) {
   }
 }
 
-const newResult = {
-  ...configResult,
-  config: {
-    ...configResult.config,
-    ["ringcentral-dialer"]: {
-      ...configResult.config["ringcentral-dialer"],
-      triggeredEntity: undefined,
-    },
-  },
-};
-
-await this.post(
-  `/employee/mine/configs/plugins/${this.args.pluginId}`,
-  newResult
-);
-
 people.forEach((person) => {
-  this.refreshTimelineForId(person.id);
+  this.refreshTimelineForId(person);
 });
