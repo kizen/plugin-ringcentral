@@ -12,7 +12,7 @@ this.communicate.sendMessageToOwnFrame(
       hidden: true,
     },
   },
-  "*"
+  "*",
 );
 
 this.communicate.sendMessageToOwnFrame(
@@ -20,7 +20,7 @@ this.communicate.sendMessageToOwnFrame(
     type: "rc-adapter-navigate-to",
     path: "/dialer",
   },
-  "*"
+  "*",
 );
 
 const summaryActivityDetails = this.args.callSummaryActivity;
@@ -33,9 +33,7 @@ if (!summaryActivityDetails && !objectDetails) {
 let employeeId = this.currentBusiness.employee_id;
 
 if (!employeeId) {
-  const [bootstrap, bootstrapError] = await this.getWithErrors(
-    "/auth/bootstrap"
-  );
+  const [bootstrap, bootstrapError] = await this.getWithErrors("/auth/bootstrap");
 
   if (bootstrapError) {
     throw bootstrapError;
@@ -45,19 +43,23 @@ if (!employeeId) {
 }
 
 if (!employeeId) {
-  throw new Error(
-    "Employee ID could not be determined, so that call was not logged to Kizen. Please try again later."
-  );
+  throw new Error("Employee ID could not be determined, so that call was not logged to Kizen. Please try again later.");
+}
+
+// Handle extension-only numbers
+let phoneNumber = this.args.phoneNumber;
+if (phoneNumber && phoneNumber.length < 10) {
+  const { mainNumber } = this.sessionData;
+
+  if (mainNumber) {
+    phoneNumber = `${mainNumber}x${phoneNumber}`;
+  }
 }
 
 let people = [];
 
-if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
-  const result = await this.post(
-    `${this.args.callerLookupEndpoint}?search=${encodeURIComponent(
-      this.args.phoneNumber
-    )}`
-  );
+if (phoneNumber && this.args.callerLookupEndpoint) {
+  const result = await this.post(`${this.args.callerLookupEndpoint}?search=${encodeURIComponent(phoneNumber)}`);
 
   if (result?.results) {
     people = result.results.map((p) => p.id);
@@ -111,7 +113,7 @@ const replaceFieldValue = (value, args, valueMap = {}, fieldMetadata = {}) => {
     case "{{duration}}":
       return args.duration;
     case "{{phoneNumber}}":
-      return args.phoneNumber;
+      return phoneNumber;
     case "{{currentUser}}":
       return employeeId;
     case "{{entityId}}":
@@ -123,9 +125,7 @@ const replaceFieldValue = (value, args, valueMap = {}, fieldMetadata = {}) => {
     case "{{direction}}": {
       const valueIdentifier = valueMap[args.direction] || args.direction;
       const value =
-        fieldMetadata.options?.find(
-          (fm) => fm.name === valueIdentifier || fm.id === valueIdentifier
-        )?.id ?? "";
+        fieldMetadata.options?.find((fm) => fm.name === valueIdentifier || fm.id === valueIdentifier)?.id ?? "";
       return value;
     }
     case "{{sessionId}}":
@@ -143,13 +143,9 @@ if (summaryActivityDetails && false) {
   let activityId = summaryActivityDetails.activityId;
 
   if (!activityId) {
-    const activities = await this.get(
-      `/activities?search=${encodeURIComponent("Phone Call")}`
-    );
+    const activities = await this.get(`/activities?search=${encodeURIComponent("Phone Call")}`);
 
-    const foundActivity = activities?.results?.find(
-      (a) => a.name === "Phone Call"
-    );
+    const foundActivity = activities?.results?.find((a) => a.name === "Phone Call");
 
     if (foundActivity) {
       activityId = foundActivity.id;
@@ -168,36 +164,29 @@ if (summaryActivityDetails && false) {
 
     await Promise.all(
       people.map(async (person) => {
-        const fields = (summaryActivityDetails.activityFieldTemplate ?? []).map(
-          (field) => {
-            const id = namesToIds[field.name] || field.id;
-            const kznField = activityFields?.find((f) => f.id === id);
+        const fields = (summaryActivityDetails.activityFieldTemplate ?? []).map((field) => {
+          const id = namesToIds[field.name] || field.id;
+          const kznField = activityFields?.find((f) => f.id === id);
 
-            return {
-              id,
-              value: replaceFieldValue(
-                field.value,
-                {
-                  duration: this.args.duration,
-                  phoneNumber: this.args.phoneNumber,
-                  direction: this.args.direction,
-                  sessionId: this.args.sessionId,
-                },
-                field.valueMap || {},
-                kznField
-              ),
-            };
-          }
-        );
-
-        const relatedObjects = (
-          summaryActivityDetails.relatedObjectsTemplate ?? []
-        ).map((object) => {
           return {
-            custom_object: object.custom_object.replace(
-              "{{clientObjectId}}",
-              this.clientObject.id
+            id,
+            value: replaceFieldValue(
+              field.value,
+              {
+                duration: this.args.duration,
+                phoneNumber: phoneNumber,
+                direction: this.args.direction,
+                sessionId: this.args.sessionId,
+              },
+              field.valueMap || {},
+              kznField,
             ),
+          };
+        });
+
+        const relatedObjects = (summaryActivityDetails.relatedObjectsTemplate ?? []).map((object) => {
+          return {
+            custom_object: object.custom_object.replace("{{clientObjectId}}", this.clientObject.id),
             entity_id: replaceFieldValue(object.entity_id, {
               entityId: person,
             }),
@@ -212,7 +201,7 @@ if (summaryActivityDetails && false) {
         };
 
         await this.post(`/activities/${activityId}/log-activity`, payload);
-      })
+      }),
     );
   }
 }
@@ -221,9 +210,7 @@ if (objectDetails) {
   let objectId = objectDetails.objectId;
 
   if (!objectId) {
-    const objects = await this.get(
-      `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`
-    );
+    const objects = await this.get(`/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`);
 
     const foundObject = objects?.find((o) => o.name === "phone_call");
 
@@ -255,13 +242,13 @@ if (objectDetails) {
             entityIds: people,
             entityName: new Date(this.args.date || Date.now()).toISOString(),
             duration: this.args.duration,
-            phoneNumber: this.args.phoneNumber,
+            phoneNumber: phoneNumber,
             direction: this.args.direction,
             sessionId: this.args.sessionId,
             fileId: this.args.fileId,
           },
           field.valueMap || {},
-          kznField
+          kznField,
         ),
       };
     });
