@@ -98,9 +98,14 @@ const navigateToCallLog = async (currentCall) => {
   let objectId = objectDetails.objectId;
 
   if (!objectId) {
-    const objects = await this.get(
+    const [objects, objectsError] = await this.getWithErrors(
       `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`
     );
+
+    if (objectsError) {
+      this.showToast("Error fetching objects", { variant: "error" });
+      return;
+    }
 
     const foundObject = objects?.find((o) => o.name === "phone_call");
 
@@ -124,9 +129,14 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
   let objectId = objectDetails.objectId;
 
   if (!objectId) {
-    const objects = await this.get(
+    const [objects, objectsError] = await this.getWithErrors(
       `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`
     );
+
+    if (objectsError) {
+      this.showToast("Error fetching objects", { variant: "error" });
+      return;
+    }
 
     const foundObject = objects?.find((o) => o.name === "phone_call");
 
@@ -136,7 +146,13 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
   }
 
   if (objectId) {
-    const object = await this.get(`/custom-objects/${objectId}/detail`);
+    const [object, objectError] = await this.getWithErrors(`/custom-objects/${objectId}/detail`);
+
+    if (objectError) {
+      this.showToast("Error fetching object details", { variant: "error" });
+      return;
+    }
+
     const objectFields = object?.fields ?? [];
 
     const namesToIds = objectFields.reduce((acc, field) => {
@@ -154,7 +170,7 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
       (f) => f.value === "{{callRecording}}"
     );
 
-    const matchingRecords = await this.post(`/records/${objectId}/search`, {
+    const [matchingRecords, matchingRecordsError] = await this.postWithErrors(`/records/${objectId}/search`, {
       and: false,
       query: [
         {
@@ -173,6 +189,11 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
         },
       ],
     });
+
+    if (matchingRecordsError) {
+      this.showToast("Error searching records", { variant: "error" });
+      return;
+    }
 
     const firstMatch = matchingRecords?.results?.[0];
 

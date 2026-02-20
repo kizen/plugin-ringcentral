@@ -28,9 +28,14 @@ if (!sessionIds.length) {
 }
 
 if (!objectId) {
-  const objects = await this.get(
+  const [objects, objectsError] = await this.getWithErrors(
     `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`
   );
+
+  if (objectsError) {
+    this.showToast("Error fetching objects", { variant: "error" });
+    return completeSession(resultData);
+  }
 
   const foundObject = objects?.find((o) => o.name === "phone_call");
 
@@ -40,7 +45,13 @@ if (!objectId) {
 }
 
 if (objectId) {
-  const object = await this.get(`/custom-objects/${objectId}/detail`);
+  const [object, objectError] = await this.getWithErrors(`/custom-objects/${objectId}/detail`);
+
+  if (objectError) {
+    this.showToast("Error fetching object details", { variant: "error" });
+    return completeSession(resultData);
+  }
+
   const objectFields = object?.fields ?? [];
 
   const namesToIds = objectFields.reduce((acc, field) => {
@@ -56,7 +67,7 @@ if (objectId) {
   );
 
   if (sessionIdFieldAPIName) {
-    const matchingRecords = await this.post(`/records/${objectId}/search`, {
+    const [matchingRecords, matchingRecordsError] = await this.postWithErrors(`/records/${objectId}/search`, {
       and: false,
       query: [
         {
@@ -75,6 +86,11 @@ if (objectId) {
         },
       ],
     });
+
+    if (matchingRecordsError) {
+      this.showToast("Error searching records", { variant: "error" });
+      return completeSession(resultData);
+    }
 
     matchingRecords.results.forEach((match) => {
       const sessionId =

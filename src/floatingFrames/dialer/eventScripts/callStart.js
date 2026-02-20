@@ -11,11 +11,15 @@ if (callData.call.direction === "Inbound") {
 }
 
 if (phone) {
-  const people = await this.post(
+  const [people, peopleError] = await this.postWithErrors(
     `${this.args.callerLookupEndpoint}?search=${encodeURIComponent(
-      this.parsePhone(phone)
-    )}`
+      this.parsePhone(phone),
+    )}`,
   );
+
+  if (peopleError) {
+    return this.showToast("Error looking up caller", { variant: "error" });
+  }
 
   const kizenIconDataUrl =
     "data:image/svg+xml;base64," +
@@ -93,7 +97,7 @@ if (phone) {
         },
       },
     },
-    "*"
+    "*",
   );
 }
 
@@ -103,7 +107,7 @@ if (callData.call.direction === "Inbound" && phone) {
       type: "rc-adapter-navigate-to",
       path: "/customizedTabs/contactOptions",
     },
-    "*"
+    "*",
   );
 }
 

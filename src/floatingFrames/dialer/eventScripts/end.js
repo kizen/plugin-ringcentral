@@ -12,7 +12,7 @@ this.communicate.sendMessageToOwnFrame(
       hidden: true,
     },
   },
-  "*"
+  "*",
 );
 
 this.communicate.sendMessageToOwnFrame(
@@ -20,7 +20,7 @@ this.communicate.sendMessageToOwnFrame(
     type: "rc-adapter-navigate-to",
     path: "/dialer",
   },
-  "*"
+  "*",
 );
 
 const summaryActivityDetails = this.args.callSummaryActivity;
@@ -33,31 +33,38 @@ if (!summaryActivityDetails && !objectDetails) {
 let employeeId = this.currentBusiness.employee_id;
 
 if (!employeeId) {
-  const [bootstrap, bootstrapError] = await this.getWithErrors(
-    "/auth/bootstrap"
-  );
+  const [bootstrap, bootstrapError] =
+    await this.getWithErrors("/auth/bootstrap");
 
   if (bootstrapError) {
-    throw bootstrapError;
+    this.showToast("Error fetching user information", { variant: "error" });
+    return;
   }
 
   employeeId = bootstrap?.team?.id;
 }
 
 if (!employeeId) {
-  throw new Error(
-    "Employee ID could not be determined, so that call was not logged to Kizen. Please try again later."
+  this.showToast(
+    "Employee ID could not be determined, so the call was not logged to Kizen. Please try again later.",
+    { variant: "error" },
   );
+  return;
 }
 
 let people = [];
 
 if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
-  const result = await this.post(
+  const [result, resultError] = await this.postWithErrors(
     `${this.args.callerLookupEndpoint}?search=${encodeURIComponent(
-      this.args.phoneNumber
-    )}`
+      this.args.phoneNumber,
+    )}`,
   );
+
+  if (resultError) {
+    this.showToast("Error looking up contacts", { variant: "error" });
+    return;
+  }
 
   if (result?.results) {
     people = result.results.map((p) => p.id);
@@ -124,7 +131,7 @@ const replaceFieldValue = (value, args, valueMap = {}, fieldMetadata = {}) => {
       const valueIdentifier = valueMap[args.direction] || args.direction;
       const value =
         fieldMetadata.options?.find(
-          (fm) => fm.name === valueIdentifier || fm.id === valueIdentifier
+          (fm) => fm.name === valueIdentifier || fm.id === valueIdentifier,
         )?.id ?? "";
       return value;
     }
@@ -143,12 +150,17 @@ if (summaryActivityDetails && false) {
   let activityId = summaryActivityDetails.activityId;
 
   if (!activityId) {
-    const activities = await this.get(
-      `/activities?search=${encodeURIComponent("Phone Call")}`
+    const [activities, activitiesError] = await this.getWithErrors(
+      `/activities?search=${encodeURIComponent("Phone Call")}`,
     );
 
+    if (activitiesError) {
+      this.showToast("Error fetching activities", { variant: "error" });
+      return;
+    }
+
     const foundActivity = activities?.results?.find(
-      (a) => a.name === "Phone Call"
+      (a) => a.name === "Phone Call",
     );
 
     if (foundActivity) {
@@ -157,7 +169,14 @@ if (summaryActivityDetails && false) {
   }
 
   if (activityId) {
-    const activityFields = await this.get(`/activities/${activityId}/fields`);
+    const [activityFields, activityFieldsError] = await this.getWithErrors(
+      `/activities/${activityId}/fields`,
+    );
+
+    if (activityFieldsError) {
+      this.showToast("Error fetching activity fields", { variant: "error" });
+      return;
+    }
 
     const namesToIds = activityFields?.reduce((acc, field) => {
       return {
@@ -184,10 +203,10 @@ if (summaryActivityDetails && false) {
                   sessionId: this.args.sessionId,
                 },
                 field.valueMap || {},
-                kznField
+                kznField,
               ),
             };
-          }
+          },
         );
 
         const relatedObjects = (
@@ -196,7 +215,7 @@ if (summaryActivityDetails && false) {
           return {
             custom_object: object.custom_object.replace(
               "{{clientObjectId}}",
-              this.clientObject.id
+              this.clientObject.id,
             ),
             entity_id: replaceFieldValue(object.entity_id, {
               entityId: person,
@@ -211,8 +230,16 @@ if (summaryActivityDetails && false) {
           mentions: [],
         };
 
-        await this.post(`/activities/${activityId}/log-activity`, payload);
-      })
+        const [, logActivityError] = await this.postWithErrors(
+          `/activities/${activityId}/log-activity`,
+          payload,
+        );
+
+        if (logActivityError) {
+          this.showToast("Error logging activity", { variant: "error" });
+          return;
+        }
+      }),
     );
   }
 }
@@ -221,9 +248,16 @@ if (objectDetails) {
   let objectId = objectDetails.objectId;
 
   if (!objectId) {
-    const objects = await this.get(
-      `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`
+    const [objects, objectsError] = await this.getWithErrors(
+      `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`,
     );
+
+    if (objectsError) {
+      this.showToast("Error fetching objects", {
+        variant: "error",
+      });
+      return;
+    }
 
     const foundObject = objects?.find((o) => o.name === "phone_call");
 
@@ -233,7 +267,15 @@ if (objectDetails) {
   }
 
   if (objectId) {
-    const object = await this.get(`/custom-objects/${objectId}/detail`);
+    const [object, objectError] = await this.getWithErrors(
+      `/custom-objects/${objectId}/detail`,
+    );
+    if (objectError) {
+      this.showToast("Error fetching object details", {
+        variant: "error",
+      });
+      return;
+    }
     const objectFields = object?.fields ?? [];
 
     const namesToIds = objectFields.reduce((acc, field) => {
@@ -261,14 +303,24 @@ if (objectDetails) {
             fileId: this.args.fileId,
           },
           field.valueMap || {},
-          kznField
+          kznField,
         ),
       };
     });
 
-    await this.post(`/records/${objectId}/add`, {
-      fields,
-    });
+    const [, addRecordError] = await this.postWithErrors(
+      `/records/${objectId}/add`,
+      {
+        fields,
+      },
+    );
+
+    if (addRecordError) {
+      this.showToast("Error creating call log record", {
+        variant: "error",
+      });
+      return;
+    }
 
     this.showToast("Successfully created call log", {
       variant: "success",
