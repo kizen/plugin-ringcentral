@@ -62,6 +62,14 @@ const updateExistingEntry = async (
 const createNewEntry = async (currentCall) => {
   const direction = currentCall.direction;
   const phoneNumberObject = direction === "Inbound" ? currentCall.from : currentCall.to;
+
+  let phoneNumber = phoneNumberObject.phoneNumber;
+  if (phoneNumber.length < 10) {
+    const webphoneSession = currentCall.webphoneSession;
+    const mainNumber = webphoneSession?.mainNumber || "";
+    phoneNumber = `${mainNumber}x${phoneNumber}`;
+  }
+
   const duration = currentCall.duration;
   const sessionId = currentCall.sessionId;
   const startTs = currentCall.startTime;
@@ -75,7 +83,7 @@ const createNewEntry = async (currentCall) => {
   }
 
   this.communicate.runFrameScript("dialer", "end", {
-    phoneNumber: phoneNumberObject.phoneNumber,
+    phoneNumber,
     duration,
     direction,
     sessionId,
@@ -189,12 +197,20 @@ if (eventData.triggerType === "presenceUpdate") {
   if (eventData.call.result === "Disconnected") {
     const direction = eventData.call.direction;
     const phoneNumberObject = direction === "Inbound" ? eventData.call.from : eventData.call.to;
+
+    let phoneNumber = phoneNumberObject.phoneNumber;
+    if (phoneNumber.length < 10) {
+      const webphoneSession = currentCall.webphoneSession;
+      const mainNumber = webphoneSession?.mainNumber || "";
+      phoneNumber = `${mainNumber}x${phoneNumber}`;
+    }
+
     const duration = eventData.call.duration;
     const sessionId = eventData.call.sessionId;
     const startTs = eventData.call.startTime;
 
     this.communicate.runFrameScript("dialer", "end", {
-      phoneNumber: phoneNumberObject.phoneNumber,
+      phoneNumber,
       duration,
       direction,
       sessionId,
