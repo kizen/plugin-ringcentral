@@ -84,6 +84,18 @@ const createNewEntry = async (currentCall) => {
   const duration = currentCall.duration;
   const sessionId = currentCall.sessionId;
   const startTs = currentCall.startTime;
+  this.console.log(
+    "Call details - phoneNumber:",
+    phoneNumber,
+    "duration:",
+    duration,
+    "direction:",
+    direction,
+    "sessionId:",
+    sessionId,
+    "startTs:",
+    startTs,
+  );
 
   const recording = currentCall.recording;
   let fileId = "";
@@ -92,6 +104,7 @@ const createNewEntry = async (currentCall) => {
     const uploadRes = await uploadRecording(recording.contentUri);
     fileId = uploadRes?.id;
   }
+  this.console.log("Uploaded recording file ID:", fileId);
 
   this.communicate.runFrameScript("dialer", "end", {
     phoneNumber,
