@@ -29,10 +29,13 @@ this.console.log("Dialer Frame determined call summary object details:", objectD
 
 const formatPhoneNumberWithExtension = (call) => {
   const { direction, to, from } = call;
+  this.console.log("Formatting phone number for call with direction:", direction, "to:", to, "from:", from);
   const isInbound = direction === "Inbound";
+  this.console.log("Is inbound call:", isInbound);
 
   const externalNumber = (isInbound ? from.phoneNumber : to.phoneNumber).replace("*", "x");
   const internalNumber = isInbound ? to.phoneNumber : from.phoneNumber;
+  this.console.log("Determined external number:", externalNumber, "and internal number:", internalNumber);
 
   return externalNumber.length > 6 ? externalNumber : `${internalNumber}x${externalNumber}`;
 };
