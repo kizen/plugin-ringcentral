@@ -1,4 +1,7 @@
+this.preserve = true;
 this.console.log("Dialer Frame initializing 'logCall' scripts");
+this.console.log("args passed to logCall script:", this.args);
+
 const eventData = this.args.payload;
 this.console.log("Dialer Frame logCall event data:", JSON.stringify(eventData));
 
