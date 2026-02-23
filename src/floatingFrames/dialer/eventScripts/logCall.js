@@ -1,4 +1,6 @@
+this.console.log("Dialer Frame initializing 'logCall' scripts");
 const eventData = this.args.payload;
+this.console.log("Dialer Frame logCall event data:", JSON.stringify(eventData));
 
 if (!eventData) {
   this.showToast("No event data was passed to the call logger", {
@@ -9,6 +11,7 @@ if (!eventData) {
 }
 
 const callSessionId = eventData.call?.sessionId;
+this.console.log("Dialer Frame determined call session ID:", callSessionId);
 
 if (!callSessionId) {
   this.showToast("No session id was present in the event data", {
@@ -70,6 +73,8 @@ const updateExistingEntry = async (
 };
 
 const createNewEntry = async (currentCall) => {
+  this.console.log("Creating new call log entry for call:", currentCall);
+
   const direction = currentCall.direction;
   const phoneNumber = formatPhoneNumberWithExtension(currentCall);
   const duration = currentCall.duration;
@@ -95,6 +100,7 @@ const createNewEntry = async (currentCall) => {
 };
 
 const navigateToCallLog = async (currentCall) => {
+  this.console.log("Navigating to call log for call:", currentCall);
   let entityId = currentCall.activityMatches?.[0]?.id;
 
   if (!objectDetails) {
@@ -119,6 +125,7 @@ const navigateToCallLog = async (currentCall) => {
 };
 
 const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
+  this.console.log("Creating or updating call log for call:", currentCall);
   const sessionId = currentCall.sessionId;
 
   if (!objectDetails) {
@@ -173,6 +180,7 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
     });
 
     const firstMatch = matchingRecords?.results?.[0];
+    this.console.log("Found matching call log record:", firstMatch);
 
     if (!firstMatch) {
       return createNewEntry(currentCall);

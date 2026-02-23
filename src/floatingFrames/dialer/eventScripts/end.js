@@ -1,3 +1,5 @@
+this.console.log("Dialer Frame initializing 'end' scripts");
+
 this.communicate.sendMessageToOwnFrame(
   {
     type: "rc-adapter-register-customized-page",
@@ -31,6 +33,7 @@ if (!summaryActivityDetails && !objectDetails) {
 }
 
 let employeeId = this.currentBusiness.employee_id;
+this.console.log("Determined employee ID:", employeeId);
 
 if (!employeeId) {
   const [bootstrap, bootstrapError] = await this.getWithErrors("/auth/bootstrap");
@@ -196,8 +199,10 @@ if (summaryActivityDetails && false) {
   }
 }
 
+this.console.log("Object Details for call log:", objectDetails);
 if (objectDetails) {
   let objectId = objectDetails.objectId;
+  this.console.log("Determined object ID:", objectId);
 
   if (!objectId) {
     const objects = await this.get(`/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`);
@@ -206,12 +211,14 @@ if (objectDetails) {
 
     if (foundObject) {
       objectId = foundObject.id;
+      this.console.log("Fetched object ID from settings search:", objectId);
     }
   }
 
   if (objectId) {
     const object = await this.get(`/custom-objects/${objectId}/detail`);
     const objectFields = object?.fields ?? [];
+    this.console.log("Fetched object fields:", objectFields);
 
     const namesToIds = objectFields.reduce((acc, field) => {
       return {
@@ -242,6 +249,8 @@ if (objectDetails) {
         ),
       };
     });
+    this.console.log("Prepared fields for call log:", fields);
+    this.console.log("Posting new call log record to object ID:", objectId);
 
     await this.post(`/records/${objectId}/add`, {
       fields,
