@@ -24,15 +24,21 @@ const formatPhoneNumberWithExtension = (call) => {
   const { direction, to, from } = call;
   const isInbound = direction === "Inbound";
 
-  const externalNumber = (isInbound ? from.phoneNumber : to.phoneNumber).replace("*", "x");
-  const internalNumber = isInbound ? to.phoneNumber : from.phoneNumber;
+  const externalNumber = isInbound ? from.phoneNumber || from.extensionNumber : to.phoneNumber || to.extensionNumber;
+  const internalNumber = isInbound ? to.phoneNumber || to.extensionNumber : from.phoneNumber || from.extensionNumber;
+
+  if (!externalNumber || !internalNumber) {
+    return "";
+  }
 
   // Edge case -- if the internal and external numbers are the same and an extension, return blank
   if (internalNumber === externalNumber && externalNumber.length <= 6) {
     return "";
   }
 
-  return externalNumber.length > 6 ? externalNumber : `${internalNumber}x${externalNumber}`;
+  const formattedExternalNumber = externalNumber.replace("*", "x");
+
+  return externalNumber.length > 6 ? formattedExternalNumber : `${internalNumber}x${formattedExternalNumber}`;
 };
 
 const uploadRecording = async (recordingUri) => {
