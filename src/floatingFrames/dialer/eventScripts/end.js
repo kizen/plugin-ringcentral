@@ -51,8 +51,10 @@ if (!employeeId) {
 
 let people = [];
 
-if (phoneNumber && this.args.callerLookupEndpoint) {
-  const result = await this.post(`${this.args.callerLookupEndpoint}?search=${encodeURIComponent(phoneNumber)}`);
+if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
+  const result = await this.post(
+    `${this.args.callerLookupEndpoint}?search=${encodeURIComponent(this.args.phoneNumber)}`,
+  );
 
   if (result?.results) {
     people = result.results.map((p) => p.id);
@@ -106,7 +108,7 @@ const replaceFieldValue = (value, args, valueMap = {}, fieldMetadata = {}) => {
     case "{{duration}}":
       return args.duration;
     case "{{phoneNumber}}":
-      return phoneNumber;
+      return this.args.phoneNumber;
     case "{{currentUser}}":
       return employeeId;
     case "{{entityId}}":
@@ -167,7 +169,7 @@ if (summaryActivityDetails && false) {
               field.value,
               {
                 duration: this.args.duration,
-                phoneNumber: phoneNumber,
+                phoneNumber: this.args.phoneNumber,
                 direction: this.args.direction,
                 sessionId: this.args.sessionId,
               },
@@ -239,7 +241,7 @@ if (objectDetails) {
             entityIds: people,
             entityName: new Date(this.args.date || Date.now()).toISOString(),
             duration: this.args.duration,
-            phoneNumber: phoneNumber,
+            phoneNumber: this.args.phoneNumber,
             direction: this.args.direction,
             sessionId: this.args.sessionId,
             fileId: this.args.fileId,
