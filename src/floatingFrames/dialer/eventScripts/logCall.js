@@ -22,6 +22,7 @@ if (!callSessionId) {
 }
 
 const objectDetails = this.args.callSummaryObject;
+this.console.log("Dialer Frame determined call summary object details:", objectDetails);
 
 const formatPhoneNumberWithExtension = (call) => {
   const { direction, to, from } = call;
