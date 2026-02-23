@@ -1,4 +1,7 @@
+this.preserve = true;
 const eventData = this.args.eventData;
+
+this.console.log("Dialer Frame received event data:", eventData);
 
 if (!eventData?.type) {
   return;
