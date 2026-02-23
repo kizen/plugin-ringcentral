@@ -67,11 +67,4 @@ if (type === "rc-call-ring-notify" && call) {
       payload: eventData,
     });
   }
-} else if (type === "rc-login-status-notify") {
-  const { loggedIn, loginNumber } = eventData;
-  if (loggedIn) {
-    this.communicate.runFrameScript("dialer", "storeLoginNumber", {
-      loginNumber,
-    });
-  }
 }
