@@ -55,6 +55,9 @@ if (type === "rc-call-ring-notify" && call) {
 
     acknowledge.bind(this)(eventData.requestId);
   } else if (eventData.path === "/log-to-kizen") {
+    this.console.log("Running log-to-kizen script with payload:", eventData.body);
+    this.console.log("Args: ", this.args);
+
     this.communicate.runFrameScript("dialer", "logCall", {
       payload: eventData.body,
     });
