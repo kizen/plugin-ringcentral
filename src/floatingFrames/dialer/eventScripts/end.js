@@ -46,16 +46,6 @@ if (!employeeId) {
   throw new Error("Employee ID could not be determined, so that call was not logged to Kizen. Please try again later.");
 }
 
-// Handle extension-only numbers
-let phoneNumber = this.args.phoneNumber;
-if (phoneNumber && phoneNumber.length < 10) {
-  const { mainNumber } = this.sessionData;
-
-  if (mainNumber) {
-    phoneNumber = `${mainNumber}x${phoneNumber}`;
-  }
-}
-
 let people = [];
 
 if (phoneNumber && this.args.callerLookupEndpoint) {

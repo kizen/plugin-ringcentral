@@ -20,6 +20,16 @@ if (!callSessionId) {
 
 const objectDetails = this.args.callSummaryObject;
 
+const formatPhoneNumberWithExtension = (call) => {
+  const { direction, to, from } = call;
+  const isInbound = direction === "Inbound";
+
+  const externalNumber = (isInbound ? from.phoneNumber : to.phoneNumber).replace("*", "x");
+  const internalNumber = isInbound ? to.phoneNumber : from.phoneNumber;
+
+  return externalNumber.length > 6 ? externalNumber : `${internalNumber}x${externalNumber}`;
+};
+
 const uploadRecording = async (recordingUri) => {
   const file = await fetch(recordingUri);
   const blob = await file.blob();
@@ -61,15 +71,7 @@ const updateExistingEntry = async (
 
 const createNewEntry = async (currentCall) => {
   const direction = currentCall.direction;
-  const phoneNumberObject = direction === "Inbound" ? currentCall.from : currentCall.to;
-
-  let phoneNumber = phoneNumberObject.phoneNumber;
-  if (phoneNumber.length < 10) {
-    const webphoneSession = currentCall.webphoneSession;
-    const mainNumber = webphoneSession?.mainNumber || "";
-    phoneNumber = `${mainNumber}x${phoneNumber}`;
-  }
-
+  const phoneNumber = formatPhoneNumberWithExtension(currentCall);
   const duration = currentCall.duration;
   const sessionId = currentCall.sessionId;
   const startTs = currentCall.startTime;
@@ -196,15 +198,7 @@ if (eventData.triggerType === "presenceUpdate") {
   /* Happens when the call is disconnected */
   if (eventData.call.result === "Disconnected") {
     const direction = eventData.call.direction;
-    const phoneNumberObject = direction === "Inbound" ? eventData.call.from : eventData.call.to;
-
-    let phoneNumber = phoneNumberObject.phoneNumber;
-    if (phoneNumber.length < 10) {
-      const webphoneSession = currentCall.webphoneSession;
-      const mainNumber = webphoneSession?.mainNumber || "";
-      phoneNumber = `${mainNumber}x${phoneNumber}`;
-    }
-
+    const phoneNumber = formatPhoneNumberWithExtension(eventData.call);
     const duration = eventData.call.duration;
     const sessionId = eventData.call.sessionId;
     const startTs = eventData.call.startTime;
