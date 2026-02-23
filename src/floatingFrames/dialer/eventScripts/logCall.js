@@ -133,7 +133,7 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
   }
 
   let objectId = objectDetails.objectId;
-
+  this.console.log("Determined object ID:", objectId);
   if (!objectId) {
     const objects = await this.get(`/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`);
 
@@ -142,11 +142,15 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
     if (foundObject) {
       objectId = foundObject.id;
     }
+    this.console.log("Fetched object ID from settings search:", objectId);
   }
 
   if (objectId) {
+    this.console.log("Fetching object details for object ID:", objectId);
     const object = await this.get(`/custom-objects/${objectId}/detail`);
     const objectFields = object?.fields ?? [];
+
+    this.console.log("Fetched object fields:", objectFields);
 
     const namesToIds = objectFields.reduce((acc, field) => {
       return {
@@ -158,6 +162,10 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
     const fieldTemplate = objectDetails.objectFieldTemplate ?? [];
     const sessionIdFieldAPIName = fieldTemplate.find((f) => f.value === "{{sessionId}}");
     const recordingFileFieldApiName = fieldTemplate.find((f) => f.value === "{{callRecording}}");
+
+    this.console.log("Determined session ID field API name:", sessionIdFieldAPIName);
+    this.console.log("Determined recording file field API name:", recordingFileFieldApiName);
+    this.console.log("fieldTemplate:", fieldTemplate);
 
     const matchingRecords = await this.post(`/records/${objectId}/search`, {
       and: false,
@@ -178,6 +186,8 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
         },
       ],
     });
+
+    this.console.log("Fetched matching call log records:", matchingRecords);
 
     const firstMatch = matchingRecords?.results?.[0];
     this.console.log("Found matching call log record:", firstMatch);
