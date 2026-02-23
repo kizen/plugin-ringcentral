@@ -105,7 +105,7 @@ const replaceFieldValue = (value, args, valueMap = {}, fieldMetadata = {}) => {
     case "{{duration}}":
       return args.duration;
     case "{{phoneNumber}}":
-      return this.args.phoneNumber;
+      return args.phoneNumber;
     case "{{currentUser}}":
       return employeeId;
     case "{{entityId}}":
