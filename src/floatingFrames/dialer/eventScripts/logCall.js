@@ -20,6 +20,27 @@ if (!callSessionId) {
 
 const objectDetails = this.args.callSummaryObject;
 
+const formatPhoneNumberWithExtension = (call) => {
+  const { direction, to, from } = call;
+  const isInbound = direction === "Inbound";
+
+  const externalNumber = isInbound ? from.phoneNumber || from.extensionNumber : to.phoneNumber || to.extensionNumber;
+  const internalNumber = isInbound ? to.phoneNumber || to.extensionNumber : from.phoneNumber || from.extensionNumber;
+
+  if (!externalNumber || !internalNumber) {
+    return "";
+  }
+
+  // Edge case -- if the internal and external numbers are the same and an extension, return blank
+  if (internalNumber === externalNumber && externalNumber.length <= 6) {
+    return "";
+  }
+
+  const formattedExternalNumber = externalNumber.replace("*", "x");
+
+  return externalNumber.length > 6 ? formattedExternalNumber : `${internalNumber}x${formattedExternalNumber}`;
+};
+
 const uploadRecording = async (recordingUri) => {
   const file = await fetch(recordingUri);
   const blob = await file.blob();
@@ -34,7 +55,7 @@ const updateExistingEntry = async (
   existingLogId,
   objectId,
   hasRecordingAlready,
-  manualAction
+  manualAction,
 ) => {
   const recording = currentCall.recording;
 
@@ -52,10 +73,7 @@ const updateExistingEntry = async (
       });
 
       this.refreshEntityForId(existingLogId);
-      this.showToast(
-        "A call recording was processed and added to the call log",
-        { variant: "success" }
-      );
+      this.showToast("A call recording was processed and added to the call log", { variant: "success" });
     }
   } else if (manualAction) {
     this.showToast("Call log is already up to date", { variant: "alert" });
@@ -64,8 +82,7 @@ const updateExistingEntry = async (
 
 const createNewEntry = async (currentCall) => {
   const direction = currentCall.direction;
-  const phoneNumberObject =
-    direction === "Inbound" ? currentCall.from : currentCall.to;
+  const phoneNumber = formatPhoneNumberWithExtension(currentCall);
   const duration = currentCall.duration;
   const sessionId = currentCall.sessionId;
   const startTs = currentCall.startTime;
@@ -79,7 +96,7 @@ const createNewEntry = async (currentCall) => {
   }
 
   this.communicate.runFrameScript("dialer", "end", {
-    phoneNumber: phoneNumberObject.phoneNumber,
+    phoneNumber,
     duration,
     direction,
     sessionId,
@@ -98,9 +115,7 @@ const navigateToCallLog = async (currentCall) => {
   let objectId = objectDetails.objectId;
 
   if (!objectId) {
-    const objects = await this.get(
-      `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`
-    );
+    const objects = await this.get(`/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`);
 
     const foundObject = objects?.find((o) => o.name === "phone_call");
 
@@ -122,11 +137,8 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
   }
 
   let objectId = objectDetails.objectId;
-
   if (!objectId) {
-    const objects = await this.get(
-      `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`
-    );
+    const objects = await this.get(`/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`);
 
     const foundObject = objects?.find((o) => o.name === "phone_call");
 
@@ -147,12 +159,8 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
     }, {});
 
     const fieldTemplate = objectDetails.objectFieldTemplate ?? [];
-    const sessionIdFieldAPIName = fieldTemplate.find(
-      (f) => f.value === "{{sessionId}}"
-    );
-    const recordingFileFieldApiName = fieldTemplate.find(
-      (f) => f.value === "{{callRecording}}"
-    );
+    const sessionIdFieldAPIName = fieldTemplate.find((f) => f.value === "{{sessionId}}");
+    const recordingFileFieldApiName = fieldTemplate.find((f) => f.value === "{{callRecording}}");
 
     const matchingRecords = await this.post(`/records/${objectId}/search`, {
       and: false,
@@ -180,9 +188,7 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
       return createNewEntry(currentCall);
     }
 
-    const hasRecordingAlready =
-      firstMatch?.fields?.[namesToIds[recordingFileFieldApiName?.name]]?.value
-        ?.length > 0;
+    const hasRecordingAlready = firstMatch?.fields?.[namesToIds[recordingFileFieldApiName?.name]]?.value?.length > 0;
 
     if (recordingFileFieldApiName?.name) {
       return updateExistingEntry(
@@ -191,7 +197,7 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
         firstMatch.id,
         objectId,
         hasRecordingAlready,
-        manualAction
+        manualAction,
       );
     }
   }
@@ -202,14 +208,13 @@ if (eventData.triggerType === "presenceUpdate") {
   /* Happens when the call is disconnected */
   if (eventData.call.result === "Disconnected") {
     const direction = eventData.call.direction;
-    const phoneNumberObject =
-      direction === "Inbound" ? eventData.call.from : eventData.call.to;
+    const phoneNumber = formatPhoneNumberWithExtension(eventData.call);
     const duration = eventData.call.duration;
     const sessionId = eventData.call.sessionId;
     const startTs = eventData.call.startTime;
 
     this.communicate.runFrameScript("dialer", "end", {
-      phoneNumber: phoneNumberObject.phoneNumber,
+      phoneNumber,
       duration,
       direction,
       sessionId,
