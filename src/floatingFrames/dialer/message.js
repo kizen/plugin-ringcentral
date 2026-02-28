@@ -41,10 +41,9 @@ if (type === "rc-call-ring-notify" && call) {
     const selectedRecord = eventData.body?.formData?.opportunity;
     if (selectedRecord === "new_contact") {
       this.clearToasts();
-      const { callFrom } =
-        eventData?.body?.page?.schema?.properties?.opportunity?.oneOf.find(
-          (o) => o.const === "new_contact"
-        );
+      const { callFrom } = eventData?.body?.page?.schema?.properties?.opportunity?.oneOf.find(
+        (o) => o.const === "new_contact",
+      );
       this.communicate.runFrameScript("dialer", "openNewContactPrompt", {
         phoneNumber: callFrom,
       });

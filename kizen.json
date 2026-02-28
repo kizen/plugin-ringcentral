@@ -1,6 +1,6 @@
 {
   "name": "RingCentral",
-  "version": "1.1.0",
+  "version": "1.3.0",
   "api_name": "ringcentral",
   "description": "Make and receive calls with RingCentral",
   "release_branches": ["main"],
@@ -8,6 +8,12 @@
   "entry": "src/",
   "engine": "1.0.0",
   "release_notes_directory": "releaseNotes/",
+  "developer_business_id": {
+    "integration": "725f64e5-4124-46cc-92c4-d16049add76e",
+    "staging": "725f64e5-4124-46cc-92c4-d16049add76e",
+    "go": "ddbdd2ce-cfe9-4bfb-aae6-33aefe24445f",
+    "fmo": "be06da94-20a4-42c9-8b24-d4eafb4cfa8d"
+  },
   "config_template": {
     "callSummaryObject": {
       "objectId": "",
