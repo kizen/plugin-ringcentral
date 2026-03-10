@@ -124,9 +124,14 @@ const navigateToCallLog = async (currentCall) => {
   let objectId = objectDetails.objectId;
 
   if (!objectId) {
-    const [objects, _objectsError] = await this.getWithErrors(
+    const [objects, objectsError] = await this.getWithErrors(
       `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`,
     );
+
+    if (objectsError) {
+      this.showToast("Error fetching objects", { variant: "error" });
+      return;
+    }
 
     const foundObject = objects?.find((o) => o.name === "phone_call");
 
@@ -149,9 +154,14 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
 
   let objectId = objectDetails.objectId;
   if (!objectId) {
-    const [objects, _objectsError] = await this.getWithErrors(
+    const [objects, objectsError] = await this.getWithErrors(
       `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`,
     );
+
+    if (objectsError) {
+      this.showToast("Error fetching objects", { variant: "error" });
+      return;
+    }
 
     const foundObject = objects?.find((o) => o.name === "phone_call");
 

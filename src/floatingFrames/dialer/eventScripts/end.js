@@ -55,11 +55,16 @@ if (!employeeId) {
 let people = [];
 
 if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
-  const [result, _resultError] = await this.postWithErrors(
+  const [result, resultError] = await this.postWithErrors(
     `${this.args.callerLookupEndpoint}?search=${encodeURIComponent(
       this.args.phoneNumber,
     )}`,
   );
+
+  if (resultError) {
+    this.showToast("Error looking up contacts", { variant: "error" });
+    return;
+  }
 
   if (result?.results) {
     people = result.results.map((p) => p.id);
@@ -215,7 +220,7 @@ if (summaryActivityDetails && false) {
           mentions: [],
         };
 
-        await this.postWithErrors(
+        const [, _logActivityError] = await this.postWithErrors(
           `/activities/${activityId}/log-activity`,
           payload,
         );
