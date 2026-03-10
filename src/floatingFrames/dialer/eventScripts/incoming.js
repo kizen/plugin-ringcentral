@@ -8,17 +8,11 @@ this.showToast(
 this.expand();
 
 if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
-  const [people, peopleError] = await this.postWithErrors(
+  const [people, _fetchPeopleError] = await this.postWithErrors(
     `${this.args.callerLookupEndpoint}?search=${encodeURIComponent(
       this.args.phoneNumber,
     )}`,
   );
-
-  if (peopleError) {
-    this.showToast("Error looking up caller", { variant: "error" });
-    return;
-  }
-
   if (people) {
     const names = people.results
       .map((p) => p.full_name)

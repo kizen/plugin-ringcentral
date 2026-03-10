@@ -11,15 +11,11 @@ if (callData.call.direction === "Inbound") {
 }
 
 if (phone) {
-  const [people, peopleError] = await this.postWithErrors(
+  const [people, _fetchPeopleError] = await this.postWithErrors(
     `${this.args.callerLookupEndpoint}?search=${encodeURIComponent(
       this.parsePhone(phone),
     )}`,
   );
-
-  if (peopleError) {
-    return this.showToast("Error looking up caller", { variant: "error" });
-  }
 
   const kizenIconDataUrl =
     "data:image/svg+xml;base64," +
