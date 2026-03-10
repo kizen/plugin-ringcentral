@@ -150,9 +150,14 @@ if (summaryActivityDetails && false) {
   let activityId = summaryActivityDetails.activityId;
 
   if (!activityId) {
-    const [activities, _activitiesError] = await this.getWithErrors(
+    const [activities, activitiesError] = await this.getWithErrors(
       `/activities?search=${encodeURIComponent("Phone Call")}`,
     );
+
+    if (activitiesError) {
+      this.showToast("Error fetching activities", { variant: "error" });
+      return;
+    }
 
     const foundActivity = activities?.results?.find(
       (a) => a.name === "Phone Call",
@@ -164,9 +169,14 @@ if (summaryActivityDetails && false) {
   }
 
   if (activityId) {
-    const [activityFields, _activityFieldsError] = await this.getWithErrors(
+    const [activityFields, activityFieldsError] = await this.getWithErrors(
       `/activities/${activityId}/fields`,
     );
+
+    if (activityFieldsError) {
+      this.showToast("Error fetching activity fields", { variant: "error" });
+      return;
+    }
 
     const namesToIds = activityFields?.reduce((acc, field) => {
       return {
@@ -220,10 +230,15 @@ if (summaryActivityDetails && false) {
           mentions: [],
         };
 
-        const [, _logActivityError] = await this.postWithErrors(
+        const [, logActivityError] = await this.postWithErrors(
           `/activities/${activityId}/log-activity`,
           payload,
         );
+
+        if (logActivityError) {
+          this.showToast("Error logging activity", { variant: "error" });
+          return;
+        }
       }),
     );
   }
@@ -233,9 +248,16 @@ if (objectDetails) {
   let objectId = objectDetails.objectId;
 
   if (!objectId) {
-    const [objects, _objectsError] = await this.getWithErrors(
+    const [objects, objectsError] = await this.getWithErrors(
       `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`,
     );
+
+    if (objectsError) {
+      this.showToast("Error fetching objects", {
+        variant: "error",
+      });
+      return;
+    }
 
     const foundObject = objects?.find((o) => o.name === "phone_call");
 
