@@ -93,6 +93,7 @@ const [createRelatedRecordResponse, createRelatedRecordError] =
     newContactPayload,
   );
 
+this.preserve = true;
 console.log({ createRelatedRecordResponse, createRelatedRecordError });
 
 if (createRelatedRecordError || !createRelatedRecordResponse?.id) {
