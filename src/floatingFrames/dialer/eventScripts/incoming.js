@@ -15,7 +15,7 @@ if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
   );
 
   if (peopleError) {
-    this.showToast("Error looking up caller", { variant: "error" });
+    this.showToast("Error looking up caller", { variant: "failure" });
     return;
   }
 

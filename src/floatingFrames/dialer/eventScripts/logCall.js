@@ -129,7 +129,7 @@ const navigateToCallLog = async (currentCall) => {
     );
 
     if (objectsError) {
-      this.showToast("Error fetching objects", { variant: "error" });
+      this.showToast("Error fetching objects", { variant: "failure" });
       return;
     }
 
@@ -159,7 +159,7 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
     );
 
     if (objectsError) {
-      this.showToast("Error fetching objects", { variant: "error" });
+      this.showToast("Error fetching objects", { variant: "failure" });
       return;
     }
 
@@ -176,7 +176,7 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
     );
 
     if (objectError) {
-      this.showToast("Error fetching object details", { variant: "error" });
+      this.showToast("Error fetching object details", { variant: "failure" });
       return;
     }
 
@@ -221,7 +221,7 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
     );
 
     if (matchingRecordsError) {
-      this.showToast("Error searching records", { variant: "error" });
+      this.showToast("Error searching records", { variant: "failure" });
       return;
     }
 

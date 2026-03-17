@@ -29,11 +29,11 @@ if (!sessionIds.length) {
 
 if (!objectId) {
   const [objects, objectsError] = await this.getWithErrors(
-    `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`
+    `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`,
   );
 
   if (objectsError) {
-    this.showToast("Error fetching objects", { variant: "error" });
+    this.showToast("Error fetching objects", { variant: "failure" });
     return completeSession(resultData);
   }
 
@@ -45,10 +45,12 @@ if (!objectId) {
 }
 
 if (objectId) {
-  const [object, objectError] = await this.getWithErrors(`/custom-objects/${objectId}/detail`);
+  const [object, objectError] = await this.getWithErrors(
+    `/custom-objects/${objectId}/detail`,
+  );
 
   if (objectError) {
-    this.showToast("Error fetching object details", { variant: "error" });
+    this.showToast("Error fetching object details", { variant: "failure" });
     return completeSession(resultData);
   }
 
@@ -63,32 +65,35 @@ if (objectId) {
 
   const fieldTemplate = objectDetails.objectFieldTemplate ?? [];
   const sessionIdFieldAPIName = fieldTemplate.find(
-    (f) => f.value === "{{sessionId}}"
+    (f) => f.value === "{{sessionId}}",
   );
 
   if (sessionIdFieldAPIName) {
-    const [matchingRecords, matchingRecordsError] = await this.postWithErrors(`/records/${objectId}/search`, {
-      and: false,
-      query: [
-        {
-          id: "query-0",
-          and: false,
-          filters: sessionIds.map((sessionId) => {
-            return {
-              type: "fields_v2",
-              field: `"custom"::${namesToIds[sessionIdFieldAPIName?.name]}`,
-              value: sessionId,
-              subtype: "custom",
-              condition: "=",
-              view_model: [],
-            };
-          }),
-        },
-      ],
-    });
+    const [matchingRecords, matchingRecordsError] = await this.postWithErrors(
+      `/records/${objectId}/search`,
+      {
+        and: false,
+        query: [
+          {
+            id: "query-0",
+            and: false,
+            filters: sessionIds.map((sessionId) => {
+              return {
+                type: "fields_v2",
+                field: `"custom"::${namesToIds[sessionIdFieldAPIName?.name]}`,
+                value: sessionId,
+                subtype: "custom",
+                condition: "=",
+                view_model: [],
+              };
+            }),
+          },
+        ],
+      },
+    );
 
     if (matchingRecordsError) {
-      this.showToast("Error searching records", { variant: "error" });
+      this.showToast("Error searching records", { variant: "failure" });
       return completeSession(resultData);
     }
 

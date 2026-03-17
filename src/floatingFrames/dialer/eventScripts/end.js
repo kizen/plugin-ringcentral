@@ -37,7 +37,7 @@ if (!employeeId) {
     await this.getWithErrors("/auth/bootstrap");
 
   if (bootstrapError) {
-    this.showToast("Error fetching user information", { variant: "error" });
+    this.showToast("Error fetching user information", { variant: "failure" });
     return;
   }
 
@@ -47,7 +47,7 @@ if (!employeeId) {
 if (!employeeId) {
   this.showToast(
     "Employee ID could not be determined, so the call was not logged to Kizen. Please try again later.",
-    { variant: "error" },
+    { variant: "failure" },
   );
   return;
 }
@@ -62,7 +62,7 @@ if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
   );
 
   if (resultError) {
-    this.showToast("Error looking up contacts", { variant: "error" });
+    this.showToast("Error looking up contacts", { variant: "failure" });
     return;
   }
 
@@ -155,7 +155,7 @@ if (summaryActivityDetails && false) {
     );
 
     if (activitiesError) {
-      this.showToast("Error fetching activities", { variant: "error" });
+      this.showToast("Error fetching activities", { variant: "failure" });
       return;
     }
 
@@ -174,7 +174,7 @@ if (summaryActivityDetails && false) {
     );
 
     if (activityFieldsError) {
-      this.showToast("Error fetching activity fields", { variant: "error" });
+      this.showToast("Error fetching activity fields", { variant: "failure" });
       return;
     }
 
@@ -236,7 +236,7 @@ if (summaryActivityDetails && false) {
         );
 
         if (logActivityError) {
-          this.showToast("Error logging activity", { variant: "error" });
+          this.showToast("Error logging activity", { variant: "failure" });
           return;
         }
       }),
@@ -254,7 +254,7 @@ if (objectDetails) {
 
     if (objectsError) {
       this.showToast("Error fetching objects", {
-        variant: "error",
+        variant: "failure",
       });
       return;
     }
@@ -272,7 +272,7 @@ if (objectDetails) {
     );
     if (objectError) {
       this.showToast("Error fetching object details", {
-        variant: "error",
+        variant: "failure",
       });
       return;
     }
@@ -317,7 +317,7 @@ if (objectDetails) {
 
     if (addRecordError) {
       this.showToast("Error creating call log record", {
-        variant: "error",
+        variant: "failure",
       });
       return;
     }
