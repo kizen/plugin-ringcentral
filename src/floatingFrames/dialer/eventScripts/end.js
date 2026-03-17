@@ -37,7 +37,7 @@ if (!employeeId) {
     await this.getWithErrors("/auth/bootstrap");
 
   if (bootstrapError) {
-    this.showToast("Error fetching user information", { variant: "failure" });
+    this.showToast(bootstrapError?.message ?? "Error fetching user information", { variant: "failure" });
     return;
   }
 
@@ -62,7 +62,7 @@ if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
   );
 
   if (resultError) {
-    this.showToast("Error looking up contacts", { variant: "failure" });
+    this.showToast(resultError?.message ?? "Error looking up contacts", { variant: "failure" });
     return;
   }
 
@@ -155,7 +155,7 @@ if (summaryActivityDetails && false) {
     );
 
     if (activitiesError) {
-      this.showToast("Error fetching activities", { variant: "failure" });
+      this.showToast(activitiesError?.message ?? "Error fetching activities", { variant: "failure" });
       return;
     }
 
@@ -174,7 +174,7 @@ if (summaryActivityDetails && false) {
     );
 
     if (activityFieldsError) {
-      this.showToast("Error fetching activity fields", { variant: "failure" });
+      this.showToast(activityFieldsError?.message ?? "Error fetching activity fields", { variant: "failure" });
       return;
     }
 
@@ -236,7 +236,7 @@ if (summaryActivityDetails && false) {
         );
 
         if (logActivityError) {
-          this.showToast("Error logging activity", { variant: "failure" });
+          this.showToast(logActivityError?.message ?? "Error logging activity", { variant: "failure" });
           return;
         }
       }),
@@ -253,7 +253,7 @@ if (objectDetails) {
     );
 
     if (objectsError) {
-      this.showToast("Error fetching objects", {
+      this.showToast(objectsError?.message ?? "Error fetching objects", {
         variant: "failure",
       });
       return;
@@ -271,7 +271,7 @@ if (objectDetails) {
       `/custom-objects/${objectId}/detail`,
     );
     if (objectError) {
-      this.showToast("Error fetching object details", {
+      this.showToast(objectError?.message ?? "Error fetching object details", {
         variant: "failure",
       });
       return;
@@ -316,7 +316,7 @@ if (objectDetails) {
     );
 
     if (addRecordError) {
-      this.showToast("Error creating call log record", {
+      this.showToast(addRecordError?.message ?? "Error creating call log record", {
         variant: "failure",
       });
       return;

@@ -18,7 +18,7 @@ if (phone) {
   );
 
   if (peopleError) {
-    return this.showToast("Error looking up caller", { variant: "failure" });
+    return this.showToast(peopleError?.message ?? "Error looking up caller", { variant: "failure" });
   }
 
   const kizenIconDataUrl =
