@@ -55,7 +55,8 @@ const newContactPrompt = await this.prompt({
 if (newContactPrompt.canceled) {
   return;
 }
-const [contactObject, contactObjectError] = await this.getWithErrors(fetchContact);
+const [contactObject, contactObjectError] =
+  await this.getWithErrors(fetchContact);
 
 if (contactObjectError) {
   this.showToast("Error fetching contact object", { variant: "error" });
@@ -86,10 +87,13 @@ const newContactPayload = {
   }),
 };
 
-const [createRelatedRecordResponse, createRelatedRecordError] = await this.postWithErrors(
-  createRecordUrl(contactObject?.id),
-  newContactPayload
-);
+const [createRelatedRecordResponse, createRelatedRecordError] =
+  await this.postWithErrors(
+    createRecordUrl(contactObject?.id),
+    newContactPayload,
+  );
+
+console.log({ createRelatedRecordResponse, createRelatedRecordError });
 
 if (createRelatedRecordError || !createRelatedRecordResponse?.id) {
   this.showToast("Failed to create new contact", { variant: "error" });
