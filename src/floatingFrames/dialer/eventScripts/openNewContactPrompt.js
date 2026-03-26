@@ -59,7 +59,10 @@ const [contactObject, contactObjectError] =
   await this.getWithErrors(fetchContact);
 
 if (contactObjectError) {
-  this.showToast(contactObjectError?.message ?? "Error fetching contact object", { variant: "failure" });
+  this.showToast(
+    contactObjectError?.message ?? "Error fetching contact object",
+    { variant: "failure" },
+  );
   return;
 }
 const { first_name, last_name, email, mobile_phone } =
@@ -92,9 +95,6 @@ const [createRelatedRecordResponse, createRelatedRecordError] =
     createRecordUrl(contactObject?.id),
     newContactPayload,
   );
-
-this.preserve = true;
-console.log({ createRelatedRecordResponse, createRelatedRecordError });
 
 if (createRelatedRecordError || !createRelatedRecordResponse?.id) {
   this.showToast(
