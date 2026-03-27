@@ -65,7 +65,7 @@ if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
   );
 
   if (resultError) {
-    this.showToast(resultError?.message ?? "Error looking up contacts", {
+    this.showToast("Error looking up contacts", {
       variant: "failure",
     });
     return;
@@ -160,7 +160,7 @@ if (summaryActivityDetails && false) {
     );
 
     if (activitiesError) {
-      this.showToast(activitiesError?.message ?? "Error fetching activities", {
+      this.showToast("Error fetching activities", {
         variant: "failure",
       });
       return;
@@ -181,10 +181,7 @@ if (summaryActivityDetails && false) {
     );
 
     if (activityFieldsError) {
-      this.showToast(
-        activityFieldsError?.message ?? "Error fetching activity fields",
-        { variant: "failure" },
-      );
+      this.showToast("Error fetching activity fields", { variant: "failure" });
       return;
     }
 
@@ -266,7 +263,7 @@ if (objectDetails) {
     );
 
     if (objectsError) {
-      this.showToast(objectsError?.message ?? "Error fetching objects", {
+      this.showToast("Error fetching objects", {
         variant: "failure",
       });
       return;
@@ -284,7 +281,7 @@ if (objectDetails) {
       `/custom-objects/${objectId}/detail`,
     );
     if (objectError) {
-      this.showToast(objectError?.message ?? "Error fetching object details", {
+      this.showToast("Error fetching object details", {
         variant: "failure",
       });
       return;
@@ -329,12 +326,9 @@ if (objectDetails) {
     );
 
     if (addRecordError) {
-      this.showToast(
-        addRecordError?.message ?? "Error creating call log record",
-        {
-          variant: "failure",
-        },
-      );
+      this.showToast("Error creating call log record", {
+        variant: "failure",
+      });
       return;
     }
 

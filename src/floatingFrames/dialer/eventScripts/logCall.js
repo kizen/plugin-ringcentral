@@ -129,7 +129,7 @@ const navigateToCallLog = async (currentCall) => {
     );
 
     if (objectsError) {
-      this.showToast(objectsError?.message ?? "Error fetching objects", {
+      this.showToast("Error fetching objects", {
         variant: "failure",
       });
       return;
@@ -161,7 +161,7 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
     );
 
     if (objectsError) {
-      this.showToast(objectsError?.message ?? "Error fetching objects", {
+      this.showToast("Error fetching objects", {
         variant: "failure",
       });
       return;
@@ -180,7 +180,7 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
     );
 
     if (objectError) {
-      this.showToast(objectError?.message ?? "Error fetching object details", {
+      this.showToast("Error fetching object details", {
         variant: "failure",
       });
       return;

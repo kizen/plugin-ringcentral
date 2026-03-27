@@ -33,7 +33,7 @@ if (!objectId) {
   );
 
   if (objectsError) {
-    this.showToast(objectsError?.message ?? "Error fetching objects", {
+    this.showToast("Error fetching objects", {
       variant: "failure",
     });
     return completeSession(resultData);
@@ -52,7 +52,7 @@ if (objectId) {
   );
 
   if (objectError) {
-    this.showToast(objectError?.message ?? "Error fetching object details", {
+    this.showToast("Error fetching object details", {
       variant: "failure",
     });
     return completeSession(resultData);
@@ -95,8 +95,6 @@ if (objectId) {
         ],
       },
     );
-    this.preserve = true;
-    console.log({ matchingRecordsError });
 
     if (matchingRecordsError) {
       if (matchingRecordsError?.status >= 500) {
