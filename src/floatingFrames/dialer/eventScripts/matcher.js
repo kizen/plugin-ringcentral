@@ -95,10 +95,10 @@ if (objectId) {
         ],
       },
     );
+    this.preserve = true;
+    console.log({ matchingRecordsError });
 
     if (matchingRecordsError) {
-      this.preserve = true;
-      console.log({ matchingRecordsError });
       if (matchingRecordsError?.status >= 500) {
         this.showToast(
           matchingRecordsError?.message ?? "Error searching records",
