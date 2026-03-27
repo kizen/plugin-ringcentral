@@ -226,9 +226,6 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
       },
     );
 
-    this.preserve = true;
-    console.log({ matchingRecordsError });
-
     if (matchingRecordsError) {
       if (matchingRecordsError?.status >= 500) {
         this.showToast(

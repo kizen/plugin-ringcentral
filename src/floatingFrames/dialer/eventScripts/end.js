@@ -327,8 +327,6 @@ if (objectDetails) {
         fields,
       },
     );
-    this.preserve = true;
-    console.log({ addRecordError });
 
     if (addRecordError) {
       this.showToast(
