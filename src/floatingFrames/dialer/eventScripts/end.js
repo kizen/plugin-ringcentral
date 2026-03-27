@@ -298,7 +298,8 @@ if (objectDetails) {
     const fields = (objectDetails.objectFieldTemplate ?? []).map((field) => {
       const id = namesToIds[field.name] || field.id;
       const kznField = objectFields?.find((f) => f.id === id);
-
+      this.preserve = true;
+      console.log("Field value before replacement:", { kznField, field });
       return {
         id,
         value: replaceFieldValue(
