@@ -37,7 +37,10 @@ if (!employeeId) {
     await this.getWithErrors("/auth/bootstrap");
 
   if (bootstrapError) {
-    this.showToast(bootstrapError?.message ?? "Error fetching user information", { variant: "failure" });
+    this.showToast(
+      bootstrapError?.message ?? "Error fetching user information",
+      { variant: "failure" },
+    );
     return;
   }
 
@@ -62,7 +65,9 @@ if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
   );
 
   if (resultError) {
-    this.showToast(resultError?.message ?? "Error looking up contacts", { variant: "failure" });
+    this.showToast(resultError?.message ?? "Error looking up contacts", {
+      variant: "failure",
+    });
     return;
   }
 
@@ -155,7 +160,9 @@ if (summaryActivityDetails && false) {
     );
 
     if (activitiesError) {
-      this.showToast(activitiesError?.message ?? "Error fetching activities", { variant: "failure" });
+      this.showToast(activitiesError?.message ?? "Error fetching activities", {
+        variant: "failure",
+      });
       return;
     }
 
@@ -174,7 +181,10 @@ if (summaryActivityDetails && false) {
     );
 
     if (activityFieldsError) {
-      this.showToast(activityFieldsError?.message ?? "Error fetching activity fields", { variant: "failure" });
+      this.showToast(
+        activityFieldsError?.message ?? "Error fetching activity fields",
+        { variant: "failure" },
+      );
       return;
     }
 
@@ -236,7 +246,10 @@ if (summaryActivityDetails && false) {
         );
 
         if (logActivityError) {
-          this.showToast(logActivityError?.message ?? "Error logging activity", { variant: "failure" });
+          this.showToast(
+            logActivityError?.message ?? "Error logging activity",
+            { variant: "failure" },
+          );
           return;
         }
       }),
@@ -314,11 +327,16 @@ if (objectDetails) {
         fields,
       },
     );
+    this.preserve = true;
+    console.log({ addRecordError });
 
     if (addRecordError) {
-      this.showToast(addRecordError?.message ?? "Error creating call log record", {
-        variant: "failure",
-      });
+      this.showToast(
+        addRecordError?.message ?? "Error creating call log record",
+        {
+          variant: "failure",
+        },
+      );
       return;
     }
 

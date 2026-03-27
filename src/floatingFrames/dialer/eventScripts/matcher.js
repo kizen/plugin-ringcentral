@@ -33,7 +33,9 @@ if (!objectId) {
   );
 
   if (objectsError) {
-    this.showToast(objectsError?.message ?? "Error fetching objects", { variant: "failure" });
+    this.showToast(objectsError?.message ?? "Error fetching objects", {
+      variant: "failure",
+    });
     return completeSession(resultData);
   }
 
@@ -50,7 +52,9 @@ if (objectId) {
   );
 
   if (objectError) {
-    this.showToast(objectError?.message ?? "Error fetching object details", { variant: "failure" });
+    this.showToast(objectError?.message ?? "Error fetching object details", {
+      variant: "failure",
+    });
     return completeSession(resultData);
   }
 
@@ -93,7 +97,14 @@ if (objectId) {
     );
 
     if (matchingRecordsError) {
-      this.showToast(matchingRecordsError?.message ?? "Error searching records", { variant: "failure" });
+      this.preserve = true;
+      console.log({ matchingRecordsError });
+      if (matchingRecordsError?.status >= 500) {
+        this.showToast(
+          matchingRecordsError?.message ?? "Error searching records",
+          { variant: "failure" },
+        );
+      }
       return completeSession(resultData);
     }
 

@@ -221,7 +221,9 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
     );
 
     if (matchingRecordsError) {
-      this.showToast(matchingRecordsError?.message ?? "Error searching records", { variant: "failure" });
+      if (matchingRecordsError?.status >= 500) {
+        this.showToast(matchingRecordsError?.message ?? "Error searching records", { variant: "failure" });
+      }
       return;
     }
 
