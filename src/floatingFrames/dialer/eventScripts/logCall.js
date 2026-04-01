@@ -232,8 +232,8 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
           matchingRecordsError?.message ?? "Error searching records",
           { variant: "failure" },
         );
+        return;
       }
-      return;
     }
 
     const firstMatch = matchingRecords?.results?.[0];
