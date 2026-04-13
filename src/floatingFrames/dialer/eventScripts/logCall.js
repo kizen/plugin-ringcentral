@@ -226,14 +226,12 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
       },
     );
 
-    if (matchingRecordsError) {
-      if (matchingRecordsError?.status >= 500) {
-        this.showToast(
-          matchingRecordsError?.message ?? "Error searching records",
-          { variant: "failure" },
-        );
-        return;
-      }
+    if (matchingRecordsError && matchingRecordsError?.status >= 500) {
+      this.showToast(
+        matchingRecordsError?.message ?? "Error searching records",
+        { variant: "failure" },
+      );
+      return;
     }
 
     const firstMatch = matchingRecords?.results?.[0];
