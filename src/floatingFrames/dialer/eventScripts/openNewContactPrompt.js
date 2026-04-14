@@ -55,7 +55,13 @@ const newContactPrompt = await this.prompt({
 if (newContactPrompt.canceled) {
   return;
 }
-const contactObject = await this.get(fetchContact);
+const [contactObject, contactObjectError] =
+  await this.getWithErrors(fetchContact);
+
+if (contactObjectError) {
+  this.showToast("Error fetching contact object", { variant: "failure" });
+  return;
+}
 const { first_name, last_name, email, mobile_phone } =
   contactObject.undeletable_fields;
 const validateEmail = (userEmail) => {
@@ -81,13 +87,15 @@ const newContactPayload = {
   }),
 };
 
-const createRelatedRecordResponse = await this.post(
-  createRecordUrl(contactObject?.id),
-  newContactPayload
-);
+const [createRelatedRecordResponse, createRelatedRecordError] =
+  await this.postWithErrors(
+    createRecordUrl(contactObject?.id),
+    newContactPayload,
+  );
 
-if (!createRelatedRecordResponse?.id) {
-  throw new Error("Failed to Create New Contact");
+if (createRelatedRecordError || !createRelatedRecordResponse?.id) {
+  this.showToast("Failed to create new contact", { variant: "failure" });
+  return;
 } else {
   this.clearToasts();
   this.showToast("Successfully Created Contact", {

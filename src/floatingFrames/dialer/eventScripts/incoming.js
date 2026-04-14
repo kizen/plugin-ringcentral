@@ -2,17 +2,22 @@ this.showToast(
   this.args.phoneNumber
     ? `Incoming call from ${this.args.phoneNumber}`
     : "Incoming call",
-  { autohide: false }
+  { autohide: false },
 );
 
 this.expand();
 
 if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
-  const people = await this.post(
+  const [people, peopleError] = await this.postWithErrors(
     `${this.args.callerLookupEndpoint}?search=${encodeURIComponent(
-      this.args.phoneNumber
-    )}`
+      this.args.phoneNumber,
+    )}`,
   );
+
+  if (peopleError) {
+    this.showToast(peopleError?.message ?? "Error looking up caller", { variant: "failure" });
+    return;
+  }
 
   if (people) {
     const names = people.results

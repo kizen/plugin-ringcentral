@@ -28,9 +28,16 @@ if (!sessionIds.length) {
 }
 
 if (!objectId) {
-  const objects = await this.get(
-    `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`
+  const [objects, objectsError] = await this.getWithErrors(
+    `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`,
   );
+
+  if (objectsError) {
+    this.showToast("Error fetching objects", {
+      variant: "failure",
+    });
+    return completeSession(resultData);
+  }
 
   const foundObject = objects?.find((o) => o.name === "phone_call");
 
@@ -40,7 +47,17 @@ if (!objectId) {
 }
 
 if (objectId) {
-  const object = await this.get(`/custom-objects/${objectId}/detail`);
+  const [object, objectError] = await this.getWithErrors(
+    `/custom-objects/${objectId}/detail`,
+  );
+
+  if (objectError) {
+    this.showToast("Error fetching object details", {
+      variant: "failure",
+    });
+    return completeSession(resultData);
+  }
+
   const objectFields = object?.fields ?? [];
 
   const namesToIds = objectFields.reduce((acc, field) => {
@@ -52,29 +69,42 @@ if (objectId) {
 
   const fieldTemplate = objectDetails.objectFieldTemplate ?? [];
   const sessionIdFieldAPIName = fieldTemplate.find(
-    (f) => f.value === "{{sessionId}}"
+    (f) => f.value === "{{sessionId}}",
   );
 
   if (sessionIdFieldAPIName) {
-    const matchingRecords = await this.post(`/records/${objectId}/search`, {
-      and: false,
-      query: [
-        {
-          id: "query-0",
-          and: false,
-          filters: sessionIds.map((sessionId) => {
-            return {
-              type: "fields_v2",
-              field: `"custom"::${namesToIds[sessionIdFieldAPIName?.name]}`,
-              value: sessionId,
-              subtype: "custom",
-              condition: "=",
-              view_model: [],
-            };
-          }),
-        },
-      ],
-    });
+    const [matchingRecords, matchingRecordsError] = await this.postWithErrors(
+      `/records/${objectId}/search`,
+      {
+        and: false,
+        query: [
+          {
+            id: "query-0",
+            and: false,
+            filters: sessionIds.map((sessionId) => {
+              return {
+                type: "fields_v2",
+                field: `"custom"::${namesToIds[sessionIdFieldAPIName?.name]}`,
+                value: sessionId,
+                subtype: "custom",
+                condition: "=",
+                view_model: [],
+              };
+            }),
+          },
+        ],
+      },
+    );
+
+    if (matchingRecordsError) {
+      if (matchingRecordsError?.status >= 500) {
+        this.showToast(
+          matchingRecordsError?.message ?? "Error searching records",
+          { variant: "failure" },
+        );
+      }
+      return completeSession(resultData);
+    }
 
     matchingRecords.results.forEach((match) => {
       const sessionId =

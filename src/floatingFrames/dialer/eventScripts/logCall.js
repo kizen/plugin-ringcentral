@@ -24,8 +24,12 @@ const formatPhoneNumberWithExtension = (call) => {
   const { direction, to, from } = call;
   const isInbound = direction === "Inbound";
 
-  const externalNumber = isInbound ? from.phoneNumber || from.extensionNumber : to.phoneNumber || to.extensionNumber;
-  const internalNumber = isInbound ? to.phoneNumber || to.extensionNumber : from.phoneNumber || from.extensionNumber;
+  const externalNumber = isInbound
+    ? from.phoneNumber || from.extensionNumber
+    : to.phoneNumber || to.extensionNumber;
+  const internalNumber = isInbound
+    ? to.phoneNumber || to.extensionNumber
+    : from.phoneNumber || from.extensionNumber;
 
   if (!externalNumber || !internalNumber) {
     return "";
@@ -38,7 +42,9 @@ const formatPhoneNumberWithExtension = (call) => {
 
   const formattedExternalNumber = externalNumber.replace("*", "x");
 
-  return externalNumber.length > 6 ? formattedExternalNumber : `${internalNumber}x${formattedExternalNumber}`;
+  return externalNumber.length > 6
+    ? formattedExternalNumber
+    : `${internalNumber}x${formattedExternalNumber}`;
 };
 
 const uploadRecording = async (recordingUri) => {
@@ -73,7 +79,10 @@ const updateExistingEntry = async (
       });
 
       this.refreshEntityForId(existingLogId);
-      this.showToast("A call recording was processed and added to the call log", { variant: "success" });
+      this.showToast(
+        "A call recording was processed and added to the call log",
+        { variant: "success" },
+      );
     }
   } else if (manualAction) {
     this.showToast("Call log is already up to date", { variant: "alert" });
@@ -115,7 +124,16 @@ const navigateToCallLog = async (currentCall) => {
   let objectId = objectDetails.objectId;
 
   if (!objectId) {
-    const objects = await this.get(`/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`);
+    const [objects, objectsError] = await this.getWithErrors(
+      `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`,
+    );
+
+    if (objectsError) {
+      this.showToast("Error fetching objects", {
+        variant: "failure",
+      });
+      return;
+    }
 
     const foundObject = objects?.find((o) => o.name === "phone_call");
 
@@ -138,7 +156,16 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
 
   let objectId = objectDetails.objectId;
   if (!objectId) {
-    const objects = await this.get(`/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`);
+    const [objects, objectsError] = await this.getWithErrors(
+      `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`,
+    );
+
+    if (objectsError) {
+      this.showToast("Error fetching objects", {
+        variant: "failure",
+      });
+      return;
+    }
 
     const foundObject = objects?.find((o) => o.name === "phone_call");
 
@@ -148,7 +175,17 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
   }
 
   if (objectId) {
-    const object = await this.get(`/custom-objects/${objectId}/detail`);
+    const [object, objectError] = await this.getWithErrors(
+      `/custom-objects/${objectId}/detail`,
+    );
+
+    if (objectError) {
+      this.showToast("Error fetching object details", {
+        variant: "failure",
+      });
+      return;
+    }
+
     const objectFields = object?.fields ?? [];
 
     const namesToIds = objectFields.reduce((acc, field) => {
@@ -159,28 +196,43 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
     }, {});
 
     const fieldTemplate = objectDetails.objectFieldTemplate ?? [];
-    const sessionIdFieldAPIName = fieldTemplate.find((f) => f.value === "{{sessionId}}");
-    const recordingFileFieldApiName = fieldTemplate.find((f) => f.value === "{{callRecording}}");
+    const sessionIdFieldAPIName = fieldTemplate.find(
+      (f) => f.value === "{{sessionId}}",
+    );
+    const recordingFileFieldApiName = fieldTemplate.find(
+      (f) => f.value === "{{callRecording}}",
+    );
 
-    const matchingRecords = await this.post(`/records/${objectId}/search`, {
-      and: false,
-      query: [
-        {
-          id: "query-0",
-          and: false,
-          filters: [
-            {
-              type: "fields_v2",
-              field: `"custom"::${namesToIds[sessionIdFieldAPIName?.name]}`,
-              value: sessionId,
-              subtype: "custom",
-              condition: "=",
-              view_model: [],
-            },
-          ],
-        },
-      ],
-    });
+    const [matchingRecords, matchingRecordsError] = await this.postWithErrors(
+      `/records/${objectId}/search`,
+      {
+        and: false,
+        query: [
+          {
+            id: "query-0",
+            and: false,
+            filters: [
+              {
+                type: "fields_v2",
+                field: `"custom"::${namesToIds[sessionIdFieldAPIName?.name]}`,
+                value: sessionId,
+                subtype: "custom",
+                condition: "=",
+                view_model: [],
+              },
+            ],
+          },
+        ],
+      },
+    );
+
+    if (matchingRecordsError && matchingRecordsError?.status >= 500) {
+      this.showToast(
+        matchingRecordsError?.message ?? "Error searching records",
+        { variant: "failure" },
+      );
+      return;
+    }
 
     const firstMatch = matchingRecords?.results?.[0];
 
@@ -188,7 +240,9 @@ const createOrUpdateCallLog = async (currentCall, manualAction = false) => {
       return createNewEntry(currentCall);
     }
 
-    const hasRecordingAlready = firstMatch?.fields?.[namesToIds[recordingFileFieldApiName?.name]]?.value?.length > 0;
+    const hasRecordingAlready =
+      firstMatch?.fields?.[namesToIds[recordingFileFieldApiName?.name]]?.value
+        ?.length > 0;
 
     if (recordingFileFieldApiName?.name) {
       return updateExistingEntry(

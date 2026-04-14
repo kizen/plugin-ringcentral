@@ -33,25 +33,43 @@ if (!summaryActivityDetails && !objectDetails) {
 let employeeId = this.currentBusiness.employee_id;
 
 if (!employeeId) {
-  const [bootstrap, bootstrapError] = await this.getWithErrors("/auth/bootstrap");
+  const [bootstrap, bootstrapError] =
+    await this.getWithErrors("/auth/bootstrap");
 
   if (bootstrapError) {
-    throw bootstrapError;
+    this.showToast(
+      bootstrapError?.message ?? "Error fetching user information",
+      { variant: "failure" },
+    );
+    return;
   }
 
   employeeId = bootstrap?.team?.id;
 }
 
 if (!employeeId) {
-  throw new Error("Employee ID could not be determined, so that call was not logged to Kizen. Please try again later.");
+  this.showToast(
+    "Employee ID could not be determined, so the call was not logged to Kizen. Please try again later.",
+    { variant: "failure" },
+  );
+  return;
 }
 
 let people = [];
 
 if (this.args.phoneNumber && this.args.callerLookupEndpoint) {
-  const result = await this.post(
-    `${this.args.callerLookupEndpoint}?search=${encodeURIComponent(this.args.phoneNumber)}`,
+  const [result, resultError] = await this.postWithErrors(
+    `${this.args.callerLookupEndpoint}?search=${encodeURIComponent(
+      this.args.phoneNumber,
+    )}`,
   );
+
+  if (resultError) {
+    this.showToast("Error looking up contacts", {
+      variant: "failure",
+    });
+    return;
+  }
 
   if (result?.results) {
     people = result.results.map((p) => p.id);
@@ -117,7 +135,9 @@ const replaceFieldValue = (value, args, valueMap = {}, fieldMetadata = {}) => {
     case "{{direction}}": {
       const valueIdentifier = valueMap[args.direction] || args.direction;
       const value =
-        fieldMetadata.options?.find((fm) => fm.name === valueIdentifier || fm.id === valueIdentifier)?.id ?? "";
+        fieldMetadata.options?.find(
+          (fm) => fm.name === valueIdentifier || fm.id === valueIdentifier,
+        )?.id ?? "";
       return value;
     }
     case "{{sessionId}}":
@@ -135,9 +155,20 @@ if (summaryActivityDetails && false) {
   let activityId = summaryActivityDetails.activityId;
 
   if (!activityId) {
-    const activities = await this.get(`/activities?search=${encodeURIComponent("Phone Call")}`);
+    const [activities, activitiesError] = await this.getWithErrors(
+      `/activities?search=${encodeURIComponent("Phone Call")}`,
+    );
 
-    const foundActivity = activities?.results?.find((a) => a.name === "Phone Call");
+    if (activitiesError) {
+      this.showToast("Error fetching activities", {
+        variant: "failure",
+      });
+      return;
+    }
+
+    const foundActivity = activities?.results?.find(
+      (a) => a.name === "Phone Call",
+    );
 
     if (foundActivity) {
       activityId = foundActivity.id;
@@ -145,7 +176,14 @@ if (summaryActivityDetails && false) {
   }
 
   if (activityId) {
-    const activityFields = await this.get(`/activities/${activityId}/fields`);
+    const [activityFields, activityFieldsError] = await this.getWithErrors(
+      `/activities/${activityId}/fields`,
+    );
+
+    if (activityFieldsError) {
+      this.showToast("Error fetching activity fields", { variant: "failure" });
+      return;
+    }
 
     const namesToIds = activityFields?.reduce((acc, field) => {
       return {
@@ -156,29 +194,36 @@ if (summaryActivityDetails && false) {
 
     await Promise.all(
       people.map(async (person) => {
-        const fields = (summaryActivityDetails.activityFieldTemplate ?? []).map((field) => {
-          const id = namesToIds[field.name] || field.id;
-          const kznField = activityFields?.find((f) => f.id === id);
+        const fields = (summaryActivityDetails.activityFieldTemplate ?? []).map(
+          (field) => {
+            const id = namesToIds[field.name] || field.id;
+            const kznField = activityFields?.find((f) => f.id === id);
 
+            return {
+              id,
+              value: replaceFieldValue(
+                field.value,
+                {
+                  duration: this.args.duration,
+                  phoneNumber: this.args.phoneNumber,
+                  direction: this.args.direction,
+                  sessionId: this.args.sessionId,
+                },
+                field.valueMap || {},
+                kznField,
+              ),
+            };
+          },
+        );
+
+        const relatedObjects = (
+          summaryActivityDetails.relatedObjectsTemplate ?? []
+        ).map((object) => {
           return {
-            id,
-            value: replaceFieldValue(
-              field.value,
-              {
-                duration: this.args.duration,
-                phoneNumber: this.args.phoneNumber,
-                direction: this.args.direction,
-                sessionId: this.args.sessionId,
-              },
-              field.valueMap || {},
-              kznField,
+            custom_object: object.custom_object.replace(
+              "{{clientObjectId}}",
+              this.clientObject.id,
             ),
-          };
-        });
-
-        const relatedObjects = (summaryActivityDetails.relatedObjectsTemplate ?? []).map((object) => {
-          return {
-            custom_object: object.custom_object.replace("{{clientObjectId}}", this.clientObject.id),
             entity_id: replaceFieldValue(object.entity_id, {
               entityId: person,
             }),
@@ -192,7 +237,18 @@ if (summaryActivityDetails && false) {
           mentions: [],
         };
 
-        await this.post(`/activities/${activityId}/log-activity`, payload);
+        const [, logActivityError] = await this.postWithErrors(
+          `/activities/${activityId}/log-activity`,
+          payload,
+        );
+
+        if (logActivityError) {
+          this.showToast(
+            logActivityError?.message ?? "Error logging activity",
+            { variant: "failure" },
+          );
+          return;
+        }
       }),
     );
   }
@@ -202,7 +258,16 @@ if (objectDetails) {
   let objectId = objectDetails.objectId;
 
   if (!objectId) {
-    const objects = await this.get(`/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`);
+    const [objects, objectsError] = await this.getWithErrors(
+      `/custom-objects/settings-search?name=${encodeURIComponent("phone_call")}`,
+    );
+
+    if (objectsError) {
+      this.showToast("Error fetching objects", {
+        variant: "failure",
+      });
+      return;
+    }
 
     const foundObject = objects?.find((o) => o.name === "phone_call");
 
@@ -212,7 +277,15 @@ if (objectDetails) {
   }
 
   if (objectId) {
-    const object = await this.get(`/custom-objects/${objectId}/detail`);
+    const [object, objectError] = await this.getWithErrors(
+      `/custom-objects/${objectId}/detail`,
+    );
+    if (objectError) {
+      this.showToast("Error fetching object details", {
+        variant: "failure",
+      });
+      return;
+    }
     const objectFields = object?.fields ?? [];
 
     const namesToIds = objectFields.reduce((acc, field) => {
@@ -225,7 +298,6 @@ if (objectDetails) {
     const fields = (objectDetails.objectFieldTemplate ?? []).map((field) => {
       const id = namesToIds[field.name] || field.id;
       const kznField = objectFields?.find((f) => f.id === id);
-
       return {
         id,
         value: replaceFieldValue(
@@ -245,9 +317,19 @@ if (objectDetails) {
       };
     });
 
-    await this.post(`/records/${objectId}/add`, {
-      fields,
-    });
+    const [, addRecordError] = await this.postWithErrors(
+      `/records/${objectId}/add`,
+      {
+        fields,
+      },
+    );
+
+    if (addRecordError) {
+      this.showToast("Error creating call log record", {
+        variant: "failure",
+      });
+      return;
+    }
 
     this.showToast("Successfully created call log", {
       variant: "success",
