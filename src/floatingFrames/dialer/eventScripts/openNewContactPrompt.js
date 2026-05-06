@@ -92,6 +92,8 @@ const [createRelatedRecordResponse, createRelatedRecordError] =
     createRecordUrl(contactObject?.id),
     newContactPayload,
   );
+this.preserve = true;
+console.log({ createRelatedRecordError })
 
 if (createRelatedRecordError || !createRelatedRecordResponse?.id) {
   this.showToast("Failed to create new contact", { variant: "failure" });
