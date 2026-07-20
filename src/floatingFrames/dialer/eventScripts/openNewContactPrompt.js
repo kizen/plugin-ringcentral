@@ -24,7 +24,7 @@ const newContactPrompt = await this.prompt({
     {
       type: "text",
       label: "Last Name",
-      placeholder: "Enter First Last",
+      placeholder: "Enter Last Name",
       widthPercent: 100,
       id: "lastName",
     },

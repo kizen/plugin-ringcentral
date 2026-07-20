@@ -23,10 +23,9 @@ this.communicate.sendMessageToOwnFrame(
   "*",
 );
 
-const summaryActivityDetails = this.args.callSummaryActivity;
 const objectDetails = this.args.callSummaryObject;
 
-if (!summaryActivityDetails && !objectDetails) {
+if (!objectDetails) {
   return;
 }
 
@@ -142,117 +141,11 @@ const replaceFieldValue = (value, args, valueMap = {}, fieldMetadata = {}) => {
     }
     case "{{sessionId}}":
       return args.sessionId;
-    case "{{recordingUrl}}":
-      return "";
     case "{{callRecording}}":
       return [args.fileId].filter(Boolean);
   }
   return value;
 };
-
-/* Disable the summary activity logging for now */
-if (summaryActivityDetails && false) {
-  let activityId = summaryActivityDetails.activityId;
-
-  if (!activityId) {
-    const [activities, activitiesError] = await this.getWithErrors(
-      `/activities?search=${encodeURIComponent("Phone Call")}`,
-    );
-
-    if (activitiesError) {
-      this.showToast("Error fetching activities", {
-        variant: "failure",
-      });
-      return;
-    }
-
-    const foundActivity = activities?.results?.find(
-      (a) => a.name === "Phone Call",
-    );
-
-    if (foundActivity) {
-      activityId = foundActivity.id;
-    }
-  }
-
-  if (activityId) {
-    const [activityFields, activityFieldsError] = await this.getWithErrors(
-      `/activities/${activityId}/fields`,
-    );
-
-    if (activityFieldsError) {
-      this.showToast("Error fetching activity fields", { variant: "failure" });
-      return;
-    }
-
-    const namesToIds = activityFields?.reduce((acc, field) => {
-      return {
-        ...acc,
-        [field.name]: field.id,
-      };
-    }, {});
-
-    await Promise.all(
-      people.map(async (person) => {
-        const fields = (summaryActivityDetails.activityFieldTemplate ?? []).map(
-          (field) => {
-            const id = namesToIds[field.name] || field.id;
-            const kznField = activityFields?.find((f) => f.id === id);
-
-            return {
-              id,
-              value: replaceFieldValue(
-                field.value,
-                {
-                  duration: this.args.duration,
-                  phoneNumber: this.args.phoneNumber,
-                  direction: this.args.direction,
-                  sessionId: this.args.sessionId,
-                },
-                field.valueMap || {},
-                kznField,
-              ),
-            };
-          },
-        );
-
-        const relatedObjects = (
-          summaryActivityDetails.relatedObjectsTemplate ?? []
-        ).map((object) => {
-          return {
-            custom_object: object.custom_object.replace(
-              "{{clientObjectId}}",
-              this.clientObject.id,
-            ),
-            entity_id: replaceFieldValue(object.entity_id, {
-              entityId: person,
-            }),
-          };
-        });
-
-        const payload = {
-          notes: "",
-          fields,
-          related_objects: relatedObjects,
-          mentions: [],
-        };
-
-        const [, logActivityError] = await this.postWithErrors(
-          `/activities/${activityId}/log-activity`,
-          payload,
-        );
-
-        if (logActivityError) {
-          this.showToast(
-            logActivityError?.message ?? "Error logging activity",
-            { variant: "failure" },
-          );
-          return;
-        }
-      }),
-    );
-  }
-}
 
 if (objectDetails) {
   let objectId = objectDetails.objectId;

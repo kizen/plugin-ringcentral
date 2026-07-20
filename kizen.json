@@ -1,6 +1,6 @@
 {
   "name": "RingCentral",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "api_name": "ringcentral",
   "description": "Make and receive calls with RingCentral",
   "release_branches": ["main"],
