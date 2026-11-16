@@ -1,8 +1,9 @@
 {
   "name": "RingCentral",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "api_name": "ringcentral",
   "description": "Make and receive calls with RingCentral",
+  "categories": ["telephony_voice"],
   "release_branches": ["main"],
   "release_environments": ["dev", "prod"],
   "entry": "src/",
